@@ -1,0 +1,16 @@
+#summary Wiki pages about development.
+
+= Development =
+
+Development has just started, and thus there is not much to see yet.
+Globally, three things are being developed in this project:
+
+  # Graphics for everything. People, paths, gui sprites, and of course the rides and coasters.
+  # A format to package the graphics and their properties (size, weight, cost, etc) into files. These files are called RCD files (Roller Coaster Data files).
+  # A program that loads the RCD files, and allows them to be used in the game.
+
+
+
+== Other pages ==
+
+  * CommitStyle The format used for the commit messages.
