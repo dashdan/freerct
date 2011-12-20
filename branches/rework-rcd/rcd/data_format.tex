@@ -485,14 +485,14 @@ That leads to the following block:
    4 &  4 & Version number of the block `2'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
   12 &  2 & Widget type. \\
-  14 &  2 & Border width of the top edge. \\
-  16 &  2 & Border width of the left edge. \\
-  18 &  2 & Border width of the right edge. \\
-  20 &  2 & Border width of the bottom edge. \\
-  22 &  2 & Minimal width of the border. \\
-  24 &  2 & Minimal height of the border. \\
-  26 &  2 & Horizontal stepsize of the border. \\
-  28 &  2 & Vertical stepsize of the border. \\
+  14 &  2 & Border width of the top edge (version 1 was 1 byte). \\
+  16 &  2 & Border width of the left edge (version 1 was 1 byte). \\
+  18 &  2 & Border width of the right edge (version 1 was 1 byte). \\
+  20 &  2 & Border width of the bottom edge (version 1 was 1 byte). \\
+  22 &  2 & Minimal width of the border (version 1 was 1 byte). \\
+  24 &  2 & Minimal height of the border (version 1 was 1 byte). \\
+  26 &  2 & Horizontal stepsize of the border (version 1 was 1 byte). \\
+  28 &  2 & Vertical stepsize of the border (version 1 was 1 byte). \\
   30 &  4 & Top-left sprite. \\
   34 &  4 & Top-middle sprite. \\
   38 &  4 & Top-right sprite. \\
@@ -553,9 +553,9 @@ should be used.
    0 &  4 & Magic string `GSLI' \\
    4 &  4 & Version number of the block `2'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Minimal length of the bar. \\
-  14 &  2 & Stepsize of the bar. \\
-  16 &  2 & Width of the slider button. \\
+  12 &  2 & Minimal length of the bar (version 1 was 1 byte). \\
+  14 &  2 & Stepsize of the bar (version 1 was 1 byte). \\
+  16 &  2 & Width of the slider button (version 1 was 1 byte). \\
   18 &  2 & Widget type. \\
   20 &  4 & Left sprite. \\
   24 &  4 & Middle sprite. \\
@@ -583,10 +583,10 @@ should be used.
    0 &  4 & Magic string `GSCL' \\
    4 &  4 & Version number of the block `2'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Minimal length scrollbar. \\
-  14 &  2 & Stepsize of background. \\
-  16 &  2 & Minimal length bar. \\
-  18 &  2 & Stepsize of bar. \\
+  12 &  2 & Minimal length scrollbar (version 1 was 1 byte). \\
+  14 &  2 & Stepsize of background (version 1 was 1 byte). \\
+  16 &  2 & Minimal length bar (version 1 was 1 byte). \\
+  18 &  2 & Stepsize of bar (version 1 was 1 byte). \\
   20 &  2 & Widget type. \\
   22 &  4 & Left/up button. \\
   26 &  4 & Right/down button. \\ \hline
