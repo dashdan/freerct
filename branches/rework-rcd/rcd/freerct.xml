@@ -1,0 +1,94 @@
+
+
+<rcdfile>
+
+<file id="surface" magic="RCDF" version="1">
+  <gameblock magic="SURF" version="3" int1="32" int2="64" int3="5">  <!-- surface type,width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
+	<addimage>../sour.../ergens.png</addimage>
+  </gameblock>
+  </file>
+  <gameblock magic="TSEL" version="1" width="64" extra="5">   <!-- Tile selection width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
+  </gameblock>
+  <gameblock magic="TARE" version="1" width="64" extra="5">  <!-- Tile area selection width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
+  </gameblock>
+  <gameblock magic="PARE" version="1" width="64" extra="5">  <!-- Patrol area selection width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
+  </gameblock>
+  <gameblock magic="TCOR" version="1" width="64" extra="5">  <!-- Tile corner selection width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
+  </gameblock>
+  <gameblock magic="SHOP" version="1" width="64" height="5">  <!-- Shop width,height -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
+  </gameblock>
+  <file id="direction" fname="buildarrows_8bpp64.rcd" magic="RCDF" version="1">
+  <gameblock magic="BDIR" version="1">
+    <int16>64</int16>  <!-- Build direction arrows width -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="1">../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png</addimages>
+  </gameblock>
+  </file>
+  <file id="foundation" fname="foundation_8bpp64.rcd" magic="RCDF" version="1">
+  <gameblock magic="FUND" version="1" int1="1" width="64" int3="5">  <!-- Foundation block type,width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/terrain/foundation/template8bpp64_masked.png</addimages>
+  </gameblock>
+  </file>
+<file id="path" fname="path_8bpp64.rcd" magic="RCDF" version="1">
+  <gameblock magic="PATH" version="1" int1="16" width="64" deltaz="5">  <!-- Path type,width,deltaz -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/paths/path/template8bpp64.png</addimages>
+  </gameblock>
+  <gameblock magic="PLAT" version="1" width="64" deltaz="5" type="3">  <!-- Platforms width,deltaz,type ???? -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/paths/path/template8bpp64.png</addimages>
+  </gameblock>
+</file>
+<file id="gui" fname="gui.rcd" magic="RCDF" version="1">
+  <gameblock magic="GBOR" sprites="9" version="1" int1="16" bytes="1,1,1,1,2,2,2,2">  <!-- Gbor type,bwidth*4,h*4 -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
+  </gameblock>
+  <gameblock magic="GCHK" sprites="6" version="1" int1="96">  <!-- Checkbox type -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
+  </gameblock>
+  <gameblock magic="GSLI" sprites="4" version="1" bytes="1,2,3,4" int1="96">  <!-- sliderbar size*4,type -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
+  </gameblock>
+  <gameblock magic="GSCL" sprites="13" version="1" bytes="1,2,3,4" int1="96">  <!-- scrollbar size*4,type -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
+  </gameblock>
+</file>
+<!-- rem borderhighlight_8bpp64.rcd: borderhighlight_8bpp64.py ../sprites_src/terrain/groundtiles/borderhighlight8bpp64_masked.png
+%python% borderhighlight_8bpp64.py -output borderhighlight_8bpp64.rcd ../sprites_src/terrain/groundtiles/borderhighlight8bpp64_masked.png
+
+rem foundation_8bpp64.rcd: foundation_8bpp64.py ../sprites_src/terrain/foundation/template8bpp64_masked.png
+%python% foundation_8bpp64.py -output foundation_8bpp64.rcd ../sprites_src/terrain/foundation/template8bpp64_masked.png
+
+rem groundtile_8bpp64.rcd: groundtile_8bpp64.py ../sprites_src/terrain/groundtiles/template8bpp64_masked.png ../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png
+%python% groundtile_8bpp64.py -output groundtile_8bpp64.rcd -test ../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png ../sprites_src/terrain/groundtiles/template8bpp64_masked.png
+
+rem cursor_groundtile_8bpp64.rcd: cursor_groundtile_8bpp64.py ../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png
+%python% cursor_groundtile_8bpp64.py -output cursor_groundtile_8bpp64.rcd ../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png
+
+rem cornerhighlight_8bpp64.rcd: cornerhighlight_8bpp64.py ../sprites_src/terrain/groundtiles/cornerhighlight8bpp64_masked.png
+%python% cornerhighlight_8bpp64.py -output cornerhighlight_8bpp64.rcd ../sprites_src/terrain/groundtiles/cornerhighlight8bpp64_masked.png
+
+rem path_8bpp64.rcd: path_8bpp64.py ../sprites_src/paths/path/template8bpp64.png
+%python% path_8bpp64.py -output path_8bpp64.rcd ../sprites_src/paths/path/template8bpp64.png
+
+rem buildarrows_8bpp64.rcd: buildarrows_8bpp64.py ../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png
+%python% buildarrows_8bpp64.py -output buildarrows_8bpp64.rcd ../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png
+
+rem gui.rcd: guis.py ../sprites_src/gui/GUIEles.png
+%python% guis.py
+
+borderhighlight_8bpp64.rcd
+buildarrows_8bpp64.rcd
+cornerhighlight_8bpp64.rcd
+cursor_groundtile_8bpp64.rcd
+foundation_8bpp64.rcd
+groundtile_8bpp64.rcd
+
+path_8bpp64.rcd
+
+-->
+
+</rcdfile>
