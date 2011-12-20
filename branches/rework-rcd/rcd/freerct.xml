@@ -24,9 +24,9 @@
     <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
   </gameblock>
   <file id="direction" fname="buildarrows_8bpp64.rcd" magic="RCDF" version="1">
-  <gameblock magic="BDIR" version="1">
-    <int16>64</int16>  <!-- Build direction arrows width -->
-    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="1">../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png</addimages>
+  <gameblock magic="BDIR" version="1" sprites="4">  <!-- Build direction arrows -->
+    </attribute type="int16" value="64">  <!-- Zoom-width -->
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="1" fname="../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png" />
   </gameblock>
   </file>
   <file id="foundation" fname="foundation_8bpp64.rcd" magic="RCDF" version="1">
@@ -47,7 +47,7 @@
     <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
   </gameblock>
   <gameblock magic="GCHK" sprites="6" version="1" int1="96">  <!-- Checkbox type -->
-    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
+    <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/gui/GUIEles.png" />
   </gameblock>
   <gameblock magic="GSLI" sprites="4" version="1" bytes="1,2,3,4" int1="96">  <!-- sliderbar size*4,type -->
     <addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../sprites_src/gui/GUIEles.png</addimages>
