@@ -20,5 +20,6 @@ List of types:
   * _"Change"_ when you made a change (use it as little as possible, unclear entry)
   * _"Feature"_ when you added a feature
   * _"Fix"_ when you fixed something
+  * _"Branch"_ when you create a branch
   * _"Remove"_ when you remove a branch/file
   * _"Revert"_ when you dare to revert something
