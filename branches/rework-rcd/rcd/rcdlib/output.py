@@ -96,6 +96,7 @@ class FileOutput(Output):
     def __init__(self, fp = None):
         Output.__init__(self)
         self.fp = fp
+        self.magiccount = 0
 
     def set_file(self, fname):
         assert self.fp is None # Don't supply a fp to the constructor.
@@ -110,5 +111,12 @@ class FileOutput(Output):
     def store_text(self, txt):
         self.fp.write(txt)
 
+    def store_magic(self, mag):
+        self.magiccount = self.magiccount + 1
+        self.store_text(mag)
+        
     def tell(self):
-        return self.fp.tell()
+        """
+        return the counted magic blocks, used for reference
+        """
+        return self.magiccount
