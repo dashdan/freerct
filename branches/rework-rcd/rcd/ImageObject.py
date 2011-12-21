@@ -6,7 +6,7 @@
 # See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with FreeRCT. If not, see <http://www.gnu.org/licenses/>.
 #
 from PIL import Image
-from rcdlib import blocks
+#from rcdlib import blocks
 
 class ImageObject(object):
     """
@@ -33,7 +33,7 @@ class ImageObject(object):
     @ivar ysize: Vertical size of the image.
     @type ysize: C{int}
     """
-    def __init__(self, im, xoffset, yoffset, xpos, ypos, xsize=None, ysize=None):
+    def __init__(self, im, xoffset, yoffset, xpos=0, ypos=0, xsize=None, ysize=None):
         self.im = im
         self.xoffset = xoffset
         self.yoffset = yoffset
@@ -207,23 +207,37 @@ class ImageObject(object):
             y_lines[y] = line
 
 
-        #pix_blk = blocks.Pixels8Bpp(self.xsize, self.ysize)
-        pix_blk = []
-        for y in range(self.ysize):
-            line = y_lines.get(y, [])
-            if len(line) > 0:
-                pix_blk.append(''.join(chr(k) for k in line))
-            else:
-                pix_blk.append(None)
+#        #pix_blk = blocks.Pixels8Bpp(self.xsize, self.ysize)
+#        pix_blk = []
+#        for y in range(self.ysize):
+#            line = y_lines.get(y, [])
+#            if len(line) > 0:
+#                pix_blk.append(''.join(chr(k) for k in line))
+#            else:
+#                pix_blk.append(None)
 
         out.store_magic('8PXL')
         out.uint32(1)       # version
-        out.uint32(4+im.height*4)       # size of structure
+        total = 4+self.ysize*4
+        for y in range(self.ysize):
+            total = total + len(y_lines.get(y, []))
+        out.uint32(total)       # size of structure
         out.uint16(self.xsize)
         out.uint16(self.ysize)
-                
-
-
+        total = 4+self.ysize*4
+        for y in range(self.ysize):
+            line = y_lines.get(y, [])
+            if len(line) > 0:
+                out.uint32(total)
+                total = total + len(line)
+            else:
+                out.uint32(0)   # if line is empty, write 0
+        for y in range(self.ysize):
+            line = y_lines.get(y, [])
+            if len(line) > 0:
+                out.store_text(line)
+        
+################ alles hieronder kan weg ? #################
 
 def split_spritegrid(fname, xoffset, yoffset, xsize, ysize, layout):
     """

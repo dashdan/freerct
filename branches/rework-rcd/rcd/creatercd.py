@@ -1,3 +1,4 @@
+import ImageObject
 import Image
 import xml.dom.minidom
 from rcdlib import output
@@ -18,13 +19,14 @@ class gameblock(object):
         self.magic = magic
         self.version = version
 
-    def addimage(self,im):
+    def addimage(self,im,xoffset, yoffset):
         """
         Add an sprite image to the gameblock collection
         """
+        x = ImageObject(im,xoffset, yoffset)
         self.images.append(im)
 
-    def addimages(self,im,width,height,first,second):
+    def addimages(self,im,width,height,first,second,xoffset, yoffset):
         """
         Add multiple sprites from one image.
         On every permutation of a first and second coordinates
@@ -33,7 +35,7 @@ class gameblock(object):
         #print "addimages",width,height,first,second
         for i in first:
             for j in second:
-                self.addimage(im.crop((i,j,i+width,j+height)))
+                self.addimage(im.crop((i,j,i+width,j+height)),xoffset, yoffset)
                 
     def addparam(self,typ,val):
         """
@@ -105,20 +107,29 @@ class gameblock(object):
         for node in domnode:
             if node.nodeType == node.ELEMENT_NODE:
                 if node.nodeName == "addimages":
-                    img = Image.open(node.getAttribute("fname"))
-                    xorg = int(node.getAttribute("xorigin"))
+                    img = Image.open(node.getAttribute("fname"))    # geef de fnaam door ipv image object
+                    xorg = int(node.getAttribute("xorigin"))   # functie voor controle attribute
                     yorg = int(node.getAttribute("yorigin"))
                     xstep = int(node.getAttribute("xstep"))
                     ystep = int(node.getAttribute("ystep"))
                     cols = int(node.getAttribute("colums"))
                     rows = int(node.getAttribute("rows"))
-                    self.addimages(img,xstep,ystep,range(yorg,yorg+ystep*rows,ystep),range(xorg,xorg+xstep*cols,xstep))
+                    
+                    xoffset = int(node.getAttribute("xoffset"))    #-32 
+                    yoffset = int(node.getAttribute("yoffset"))     #-33
+                    width = int(node.getAttribute("width"))
+                    height = int(node.getAttribute("height"))
+                    self.addimages(img,width,height,range(yorg,yorg+ystep*rows,ystep),range(xorg,xorg+xstep*cols,xstep),xoffset, yoffset)
                                                     # width,height moet er nog bij ipv xstep/ystep
                                                     # en ook de richting hor/vert
                                                     # als cols = 1, dan is xstep niet nodig
                                                     # als rows = 1, dan is ystep not needed
                 elif node.nodeName == "addimage":
-                    self.addimage(Image.open(node.getAttribute("fname")))
+                    xoffset = int(node.getAttribute("xoffset"))
+                    yoffset = int(node.getAttribute("yoffset"))
+                    xpos = int(node.getAttribute("xpos"))
+                    ypos = int(node.getAttribute("ypos"))
+                    self.addimage(Image.open(node.getAttribute("fname")),xoffset, yoffset, xpos, ypos)
                     # add some support for empty image
                 elif node.nodeName == "attribute":
                     self.addparam(node.getAttribute("type"),node.getAttribute("value"))

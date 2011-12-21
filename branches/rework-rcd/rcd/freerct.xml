@@ -33,7 +33,8 @@
 			<attribute type="int16" value="16" /> <!-- type -->
 			<attribute type="int16" value="64" /> <!-- width -->
 			<attribute type="int16" value="5" /> <!-- deltaz -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="2" rows="3" fname="../sprites_src/terrain/foundation/template8bpp64_masked.png" />
+			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="2" rows="3" fname="../sprites_src/terrain/foundation/template8bpp64_masked.png" 
+				xoffset="-32" yoffset="-33" width="64" height="64" />
 		</gameblock>
 	</file>
 	<file id="path" fname="path_8bpp64.rcd" magic="RCDF" version="1">

@@ -64,7 +64,7 @@ class Output(object):
         """
         raise NotImplementedError("Implement me in %r" % type(self))
 
-
+# wordt niet gebruikt ?
 class MemoryOutput(Output):
     """
     Output class for storing data in memory.
