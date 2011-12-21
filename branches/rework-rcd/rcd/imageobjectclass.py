@@ -34,6 +34,7 @@ class ImageObject(object):
     @type ysize: C{int}
     """
     def __init__(self, im, xoffset, yoffset, xpos=0, ypos=0, xsize=None, ysize=None):
+        print im
         self.im = im
         self.xoffset = xoffset
         self.yoffset = yoffset

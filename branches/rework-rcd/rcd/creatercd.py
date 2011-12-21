@@ -1,5 +1,6 @@
-import ImageObject
+
 import Image
+import imageobjectclass
 import xml.dom.minidom
 from rcdlib import output
 
@@ -23,8 +24,8 @@ class gameblock(object):
         """
         Add an sprite image to the gameblock collection
         """
-        x = ImageObject(im,xoffset, yoffset)
-        self.images.append(im)
+        x = imageobjectclass.ImageObject(im,xoffset, yoffset)
+        self.images.append(x)
 
     def addimages(self,im,width,height,first,second,xoffset, yoffset):
         """
@@ -35,7 +36,7 @@ class gameblock(object):
         #print "addimages",width,height,first,second
         for i in first:
             for j in second:
-                self.addimage(im.crop((i,j,i+width,j+height)),xoffset, yoffset)
+                self.addimage(im.crop((i,j,i+width,j+height)).load(),xoffset, yoffset)
                 
     def addparam(self,typ,val):
         """
@@ -127,9 +128,9 @@ class gameblock(object):
                 elif node.nodeName == "addimage":
                     xoffset = int(node.getAttribute("xoffset"))
                     yoffset = int(node.getAttribute("yoffset"))
-                    xpos = int(node.getAttribute("xpos"))
-                    ypos = int(node.getAttribute("ypos"))
-                    self.addimage(Image.open(node.getAttribute("fname")),xoffset, yoffset, xpos, ypos)
+                    width = int(node.getAttribute("xpos"))    #optional
+                    height = int(node.getAttribute("ypos"))    #optional
+                    self.addimage(Image.open(node.getAttribute("fname")),xoffset, yoffset)
                     # add some support for empty image
                 elif node.nodeName == "attribute":
                     self.addparam(node.getAttribute("type"),node.getAttribute("value"))
