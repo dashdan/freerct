@@ -42,12 +42,12 @@ class ImageObject(object):
         self.ypos = ypos
 
         if xsize is None:
-            self.xsize = im.width - self.xpos
+            self.xsize = im.size[0] - self.xpos
         else:
             self.xsize = xsize
 
         if ysize is None:
-            self.ysize = im.height - self.ypos
+            self.ysize = im.size[1] - self.ypos
         else:
             self.ysize = ysize
 
@@ -207,7 +207,7 @@ class ImageObject(object):
 
             y_lines[y] = line
 
-
+        print y_lines
 #        #pix_blk = blocks.Pixels8Bpp(self.xsize, self.ysize)
 #        pix_blk = []
 #        for y in range(self.ysize):
@@ -227,16 +227,16 @@ class ImageObject(object):
         out.uint16(self.ysize)
         total = 4+self.ysize*4
         for y in range(self.ysize):
-            line = y_lines.get(y, [])
+            line = y_lines[y]
             if len(line) > 0:
                 out.uint32(total)
                 total = total + len(line)
             else:
                 out.uint32(0)   # if line is empty, write 0
         for y in range(self.ysize):
-            line = y_lines.get(y, [])
+            line = y_lines[y]
             if len(line) > 0:
-                out.store_text(line)
+                out.bytes(line)
         
 ################ alles hieronder kan weg ? #################
 

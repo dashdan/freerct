@@ -33,10 +33,10 @@ class gameblock(object):
         On every permutation of a first and second coordinates
         There will be len(first)*len(second) sprites added
         """
-        #print "addimages",width,height,first,second
+        print "addimages",im.size,width,height,first,second
         for i in first:
             for j in second:
-                self.addimage(im.crop((i,j,i+width,j+height)).load(),xoffset, yoffset)
+                self.addimage(im.crop((i,j,i+width,j+height)),xoffset, yoffset)
                 
     def addparam(self,typ,val):
         """
@@ -96,8 +96,8 @@ class gameblock(object):
         out.uint32(2)       # version
         out.uint32(8)       # size of structure
         # waarom is de sprite niet onderdeel van SPRT ?
-        out.int16(0)       #x offset !!!!!!!!!moet nog iets gebeuren
-        out.int16(0)       #y offset !!!!!!!!!!!idem
+        out.int16(im.xoffset)       #x offset !!!!!!!!!moet nog iets gebeuren
+        out.int16(im.yoffset)       #y offset !!!!!!!!!!!idem
         out.uint32(pxl8pos) # the real sprite location
         return sprtpos
 
