@@ -110,3 +110,5 @@ class FileOutput(Output):
     def store_text(self, txt):
         self.fp.write(txt)
 
+    def tell(self):
+        return self.fp.tell()
