@@ -11,7 +11,9 @@ from rcdlib import output
 # tag parameter zou ook filenaam kunnen zijn, dan kan de tag weg
 # als de tag/filenaam all is, dan alle bestanden maken
 fname = "freerct.xml"
-tag = "foundation"
+#tag = "direction"
+tag = "path"
+#tag = "foundation"
 
 class gameblock(object):
     def __init__(self,magic,version):
@@ -33,10 +35,10 @@ class gameblock(object):
         On every permutation of a first and second coordinates
         There will be len(first)*len(second) sprites added
         """
-        print "addimages",im.size,width,height,first,second
+        #print "addimages",im.size,width,height,first,second
         for i in first:
             for j in second:
-                self.addimage(im.crop((i,j,i+width,j+height)),xoffset, yoffset)
+                self.addimage(im.crop((j,i,j+width,i+height)),xoffset, yoffset)
                 
     def addparam(self,typ,val):
         """
@@ -81,7 +83,7 @@ class gameblock(object):
         # handel iets met lege sprites
         pxl8pos = out.tell()
 #        print "write sprite:out.image(iets)"
-        im.write_8PXL(out)  # trans en skip_crop
+        im.write_8PXL(out,0,False)  # trans en skip_crop
 
 #        out.store_magic('8PXL')
 #        out.uint32(1)       # version
@@ -89,8 +91,7 @@ class gameblock(object):
 #        out.uint16(im.width)
 #        out.uint16(im.height)
         # write im.height() pointers
-        
-        
+                
         sprtpos = out.tell()
         out.store_magic('SPRT')
         out.uint32(2)       # version
@@ -109,17 +110,17 @@ class gameblock(object):
             if node.nodeType == node.ELEMENT_NODE:
                 if node.nodeName == "addimages":
                     img = Image.open(node.getAttribute("fname"))    # geef de fnaam door ipv image object
+                    cols = int(node.getAttribute("colums"))
+                    rows = int(node.getAttribute("rows"))
+                    width = int(node.getAttribute("width"))
+                    height = int(node.getAttribute("height"))
                     xorg = int(node.getAttribute("xorigin"))   # functie voor controle attribute
                     yorg = int(node.getAttribute("yorigin"))
                     xstep = int(node.getAttribute("xstep"))
                     ystep = int(node.getAttribute("ystep"))
-                    cols = int(node.getAttribute("colums"))
-                    rows = int(node.getAttribute("rows"))
                     
                     xoffset = int(node.getAttribute("xoffset"))    #-32 
                     yoffset = int(node.getAttribute("yoffset"))     #-33
-                    width = int(node.getAttribute("width"))
-                    height = int(node.getAttribute("height"))
                     self.addimages(img,width,height,range(yorg,yorg+ystep*rows,ystep),range(xorg,xorg+xstep*cols,xstep),xoffset, yoffset)
                                                     # width,height moet er nog bij ipv xstep/ystep
                                                     # en ook de richting hor/vert
@@ -128,8 +129,8 @@ class gameblock(object):
                 elif node.nodeName == "addimage":
                     xoffset = int(node.getAttribute("xoffset"))
                     yoffset = int(node.getAttribute("yoffset"))
-                    width = int(node.getAttribute("xpos"))    #optional
-                    height = int(node.getAttribute("ypos"))    #optional
+                    #width = int(node.getAttribute("xpos"))    #optional
+                    #height = int(node.getAttribute("ypos"))    #optional
                     self.addimage(Image.open(node.getAttribute("fname")),xoffset, yoffset)
                     # add some support for empty image
                 elif node.nodeName == "attribute":

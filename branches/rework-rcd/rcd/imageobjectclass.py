@@ -34,7 +34,6 @@ class ImageObject(object):
     @type ysize: C{int}
     """
     def __init__(self, im, xoffset, yoffset, xpos=0, ypos=0, xsize=None, ysize=None):
-        print im
         self.im = im
         self.xoffset = xoffset
         self.yoffset = yoffset
@@ -178,6 +177,7 @@ class ImageObject(object):
         if not skip_crop: self.crop(trans)
 
         if self.xsize == 0 or self.ysize == 0:
+            print 'Size is 0, skipped'
             return None
 
         y_lines = {}
@@ -207,21 +207,11 @@ class ImageObject(object):
 
             y_lines[y] = line
 
-        print y_lines
-#        #pix_blk = blocks.Pixels8Bpp(self.xsize, self.ysize)
-#        pix_blk = []
-#        for y in range(self.ysize):
-#            line = y_lines.get(y, [])
-#            if len(line) > 0:
-#                pix_blk.append(''.join(chr(k) for k in line))
-#            else:
-#                pix_blk.append(None)
-
         out.store_magic('8PXL')
         out.uint32(1)       # version
         total = 4+self.ysize*4
         for y in range(self.ysize):
-            total = total + len(y_lines.get(y, []))
+            total = total + len(y_lines[y])
         out.uint32(total)       # size of structure
         out.uint16(self.xsize)
         out.uint16(self.ysize)
