@@ -3,8 +3,10 @@
 <rcdfile>
 	<file id="surface" magic="RCDF" version="1">
 		<gameblock magic="SURF" version="3" int1="32" int2="64" int3="5">  <!-- surface type,width,deltaz -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
-			<addimage>../sour.../ergens.png</addimage>
+			<attribute type="int16" value="16" /> <!-- type -->
+			<attribute type="int16" value="64" /> <!-- width -->
+			<attribute type="int16" value="16" /> <!-- deltaz -->
+			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png" xoffset="0" yoffset="0" width="64" height="64" />
 		</gameblock>
 	</file>
 	<gameblock magic="TSEL" version="1" width="64" extra="5">   <!-- Tile selection width,deltaz -->
@@ -25,39 +27,69 @@
 	<file id="direction" fname="buildarrows_8bpp64.rcd" magic="RCDF" version="1">
 		<gameblock magic="BDIR" version="1" sprites="4">  <!-- Build direction arrows -->
 			<attribute type="int16" value="64" />  <!-- Zoom-width -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="1" fname="../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png" />
+			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="1" fname="../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png" xoffset="0" yoffset="0" width="64" height="64" />
 		</gameblock>
 	</file>
 	<file id="foundation" fname="foundation_8bpp64.rcd" magic="RCDF" version="1">
 		<gameblock magic="FUND" version="1" sprites="6">  <!-- Foundation block -->
 			<attribute type="int16" value="16" /> <!-- type -->
 			<attribute type="int16" value="64" /> <!-- width -->
-			<attribute type="int16" value="5" /> <!-- deltaz -->
+			<attribute type="int16" value="16" /> <!-- deltaz -->
 			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="2" rows="3" fname="../sprites_src/terrain/foundation/template8bpp64_masked.png" xoffset="-32" yoffset="-33" width="64" height="64" />
 		</gameblock>
 	</file>
 	<file id="path" fname="path_8bpp64.rcd" magic="RCDF" version="1">
-		<gameblock magic="PATH" version="1" int1="16" width="64" deltaz="5">  <!-- Path type,width,deltaz -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/paths/path/template8bpp64.png" />
-		</gameblock>
-		<gameblock magic="PLAT" version="1" width="64" deltaz="5" type="3">  <!-- Platforms width,deltaz,type ???? -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/paths/path/template8bpp64.png" />
+		<gameblock magic="PATH" version="1" sprites="51">  <!-- Path -->
+			<attribute type="int16" value="16" /> <!-- type -->
+			<attribute type="int16" value="64" /> <!-- width -->
+			<attribute type="int16" value="16" /> <!-- deltaz -->
+			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="17" fname="../sprites_src/paths/path/template8bpp64.png" xoffset="0" yoffset="0" width="64" height="64" />
 		</gameblock>
 	</file>
+	<gameblock magic="PLAT" version="1" width="64" deltaz="5" type="3">  <!-- Platforms width,deltaz,type ???? -->
+		<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/paths/path/template8bpp64.png" />
+	</gameblock>
+
 	<file id="gui" fname="gui.rcd" magic="RCDF" version="1">
+	<!-- '8PXL' 85 		'SPRT' 97		'GBOR' 8		'GCHK' 2    'GSCL' 4 -->
 		<gameblock magic="GBOR" sprites="9" version="1" int1="16" bytes="1,1,1,1,2,2,2,2">  <!-- Gbor type,bwidth*4,h*4 -->
 			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/gui/GUIEles.png" />
 		</gameblock>
-		<gameblock magic="GCHK" sprites="6" version="1" int1="96">  <!-- Checkbox type -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/gui/GUIEles.png" />
+		
+		<gameblock magic="GCHK" sprites="6" version="1" >  <!-- Checkbox -->
+			<attribute type="int16" value="96" /> <!-- type -->
+			<addimages xorigin="0" yorigin="0" xstep="17" ystep="64" colums="6" rows="1" fname="../sprites_src/gui/GUIEles.png" xoffset="0" yoffset="0" width="15" height="15"/>
 		</gameblock>
-		<gameblock magic="GSLI" sprites="4" version="1" bytes="1,2,3,4" int1="96">  <!-- sliderbar size*4,type -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/gui/GUIEles.png" />
+		<gameblock magic="GCHK" sprites="6" version="1">  <!-- Checkbox radiobutton-->
+			<attribute type="int16" value="112" /> <!-- type -->
+			<addimages xorigin="0" yorigin="0" xstep="17" ystep="64" colums="6" rows="1" fname="../sprites_src/gui/GUIEles.png" xoffset="0" yoffset="0" width="15" height="15" />
 		</gameblock>
-		<gameblock magic="GSCL" sprites="13" version="1" bytes="1,2,3,4" int1="96">  <!-- scrollbar size*4,type -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/gui/GUIEles.png" />
+		
+		<gameblock magic="GSCL" sprites="10" version="1">  <!-- hor scrollbar -->
+			<attribute type="int8" value="50" /> <!-- min length -->
+			<attribute type="int8" value="2" /> <!-- stepsize back -->
+			<attribute type="int8" value="18" /> <!-- min length bar -->
+			<attribute type="int8" value="2" /> <!-- stepsize bar -->
+			<attribute type="int16" value="160" /> <!-- type -->
+			<addimages xorigin="1" yorigin="92" xstep="68" ystep="64" colums="10" rows="1" fname="../sprites_src/gui/GUIEles.png" xoffset="0" yoffset="0" width="15" height="15" />
+		</gameblock>
+		<gameblock magic="GSCL" sprites="10" version="1">  <!-- shaded scrollbar -->
+			<attribute type="int8" value="50" /> <!-- min length -->
+			<attribute type="int8" value="2" /> <!-- stepsize back -->
+			<attribute type="int8" value="18" /> <!-- min length bar -->
+			<attribute type="int8" value="2" /> <!-- stepsize bar -->
+			<attribute type="int16" value="161" /> <!-- type -->
+			<addimages xorigin="18" yorigin="92" xstep="68" ystep="64" colums="1" rows="1" fname="../sprites_src/gui/GUIEles.png" xoffset="0" yoffset="0" width="15" height="15" />
+			<addimage />
+			<addimages xorigin="52" yorigin="92" xstep="68" ystep="64" colums="1" rows="1" fname="../sprites_src/gui/GUIEles.png" xoffset="0" yoffset="0" width="15" height="15" />
+			<addimage />
+			<addimages xorigin="124" yorigin="92" xstep="9" ystep="64" colums="6" rows="1" fname="../sprites_src/gui/GUIEles.png" xoffset="0" yoffset="0" width="7" height="15" />
 		</gameblock>
 	</file>
+	<gameblock magic="GSLI" sprites="4" version="1" bytes="1,2,3,4" int1="96">  <!-- sliderbar size*4,type -->
+		<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/gui/GUIEles.png" />
+	</gameblock>
+		
 <!-- rem borderhighlight_8bpp64.rcd: borderhighlight_8bpp64.py ../sprites_src/terrain/groundtiles/borderhighlight8bpp64_masked.png
 %python% borderhighlight_8bpp64.py -output borderhighlight_8bpp64.rcd ../sprites_src/terrain/groundtiles/borderhighlight8bpp64_masked.png
 
