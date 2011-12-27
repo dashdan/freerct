@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<structures magic='RCDF' version="1">
+	<struct class="platform" magic="PLAT" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile of the surface</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="uint16" name="type">Platform type</attribute>
+		<attribute type="Sprite" name="sprites" count="6" const="PLAT_COUNT" />
+	</struct>
+	<struct class="Foundation" magic="FUND" version="2">
+		<attribute type="uint16" name="type">Type of foundation</attribute>
+		<attribute type="uint16" name="width">Zoom-width of a tile</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="Sprite" name="sprites" count="6" />
+	</struct>
+	<struct class="ScrollbarSpriteData " magic="GSCL" version="2">
+		<attribute type="uint8" name="min_length_all">Minimal length scrollbar</attribute>
+		<attribute type="uint8" name="stepsize_bar">Stepsize of background</attribute>
+		<attribute type="uint8" name="min_length_slider">Minimal length bar</attribute>
+		<attribute type="uint8" name="stepsize_slider">Stepsize of bar</attribute>
+		<attribute type="uint16" name="widgettype">Widget type</attribute>
+		<attribute type="Sprite" name="normal" count="13" const="WLS_COUNT" />
+	</struct>
+	<struct class="SliderSpriteData" magic="GSLI" version="2">
+		<attribute type="uint8" name="min_bar_length">Minimal length of the bar</attribute>
+		<attribute type="uint8" name="stepsize">Stepsize of the bar</attribute>
+		<attribute type="uint8" name="width">Width of the slider button</attribute>
+		<attribute type="uint16" name="widgettype">Widget type</attribute>
+		<attribute type="Sprite" name="normal" count="4" const="WSS_COUNT" />
+		<attribute type="Sprite" name="shaded" count="4" const="WSS_COUNT" />
+	</struct>
+	<struct class="BorderSpriteData" magic="GBOR" version="1">
+		<attribute type="uint16" name="widgettype">Widget type</attribute>
+		<attribute type="uint8" name="border_top">Border width of the top edge</attribute>
+		<attribute type="uint8" name="border_left">Border width of the left edge</attribute>
+		<attribute type="uint8" name="border_right">Border width of the right edge</attribute>
+		<attribute type="uint8" name="border_bottom">Border width of the bottom edge</attribute>
+		<attribute type="uint16" name="min_width">Minimal width of the border</attribute>
+		<attribute type="uint16" name="min_height">Minimal height of the border</attribute>
+		<attribute type="uint8" name="hor_stepsize">Horizontal stepsize of the border</attribute>
+		<attribute type="uint8" name="vert_stepsize">Vertical stepsize of the border</attribute>
+		<attribute type="Sprite" name="normal" count="4" const="WBS_COUNT" />
+		<attribute type="Sprite" name="pressed" count="4" const="WBS_COUNT" />
+	</struct>
+	<struct class="TileSelection" magic="TSEL" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="Sprite" name="surface" count="72" const="NUM_SLOPE_SPRITES" />
+	</struct>
+	<struct class="SurfaceData" magic="SURF" version="1">
+		<attribute type="uint16" name="type">Type of ground</attribute>
+		<attribute type="uint16" name="width">Zoom-width of a tile</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="Sprite" name="surface" count="72" const="NUM_SLOPE_SPRITES" />
+	</struct>
+	<struct class="TileArea" magic="TARE" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="Sprite" name="sprites" count="18" const="TARE_COUNT" />
+	</struct>
+	<struct class="PatrolArea" magic="PARE" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="Sprite" name="sprites" count="18" const="PARE_COUNT">Tile surface sprite sub-block</attribute>
+	</struct>
+	<struct class="TileCorners" magic="TCOR" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile of the surface</attribute>
+		<attribute type="uint16" name="height">Change in Z height (in pixels) when going up or down a tile level</attribute>
+		<attribute type="Sprite" name="sprites" count="288" const="NUM_SLOPE_SPRITES*VOR_NUM_ORIENT" />
+	</struct>
+	<struct class="Shop" magic="SHOP" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile of the surface</attribute>
+		<attribute type="uint16" name="height">Height of the shop in voxels</attribute>
+		<attribute type="Sprite" name="sprites" count="4" const="VOR_NUM_ORIENT" />
+	</struct>
+	<struct class="DisplayedObject" magic="BDIR" version="1">
+		<attribute type="uint16" name="width">Zoom-width of a tile of the surface</attribute>
+		<attribute type="Sprite" name="sprites" count="4" const="VOR_NUM_ORIENT" />
+	</struct>
+	<struct class="Path" magic="SURF" version="1">
+		<attribute type="uint16" name="type">Type of ground</attribute>
+		<attribute type="uint16" name="width">Zoom-width of a tile</attribute>
+		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
+		<attribute type="Sprite" name="sprites" count="51" const="PATH_COUNT" />
+	</struct>
+<structures>
+	
+	
