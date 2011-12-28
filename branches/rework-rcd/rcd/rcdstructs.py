@@ -16,12 +16,18 @@ class Structures(object):
             # check for double magic/version ?
             self.structs[struct.magic] = struct
 
+    def writeH(self):
+        #print "read from RCD with magic",self.magic,self.version
+        ####if (!rcd_file.CheckFileHeader("RCDF", 1)) return "Could not read header";
+        for magic in self.structs:
+            self.structs[magic].writeHcode()
+
     def writeCPP(self):
         print "read from RCD with magic",self.magic,self.version
         ####if (!rcd_file.CheckFileHeader("RCDF", 1)) return "Could not read header";
         for magic in self.structs:
-            self.structs[magic].writeCPPloadclass()
-
+            self.structs[magic].writeCPPcode()
+            
 class Struct(object):
     def __init__(self):
         self.attributes = []
@@ -41,7 +47,7 @@ class Struct(object):
             # check for double name ?
             self.attributes.append(attr)
 
-    def writeCPPloadclass(self):
+    def writeHcode(self):
         print "/**"
         print " * %Sprite data for "+self.magic+" RCD structure."
         print " * @ingroup gui_sprites_group (why?)"
@@ -50,11 +56,13 @@ class Struct(object):
         print "    void Clear();"
         print ""
         print "    bool IsLoaded() const;"
+        print ""
         for atr in self.attributes:
-            atr.writeCPPstructdef()
+            atr.writeHstructdef()
         print "};"
         print ""
-        
+    
+    def writeCPPcode(self):    
         print "/** Clear the",self.magic,"sprite data. */"
         print "void "+self.cclass+"::Clear()"
         print "{"
@@ -103,11 +111,12 @@ class Attribute(object):
             #print self.comment,node.firstChild.nodeType
             # doe iets als er meer childeren are, which are of type 3 NODE_TEXT?
 
-    def writeCPPstructdef(self):
+    def writeHstructdef(self):
         if self.type == "Sprite":
             print "    Sprite *"+self.name+"["+self.count+"]; ///< "+self.comment
         else:
             print "    "+self.type+" "+self.name+"; ///< "+self.comment
+            
     def writeCPPcleartruct(self):
         if self.type == "Sprite":
             print "    for (uint sprnum = 0; sprnum <",self.count,"; sprnum++) {"
@@ -165,4 +174,7 @@ dom = xml.dom.minidom.parse("rcdstructure.xml")
 rcdstructure = Structures()
 rcdstructure.loadfromDOM(dom.getElementsByTagName("structures").item(0))
 
+rcdstructure.writeH()
+
 rcdstructure.writeCPP()
+
