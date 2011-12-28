@@ -27,7 +27,21 @@ class Structures(object):
         ####if (!rcd_file.CheckFileHeader("RCDF", 1)) return "Could not read header";
         for magic in self.structs:
             self.structs[magic].writeCPPcode()
-            
+
+    def creatercdfile(self,node):
+        fname = node.getAttribute("filename")
+        # open()
+        for child in node.childNodes:
+            if child.nodeType == node.ELEMENT_NODE and child.nodeName in self.structs:
+                print "I've got one",child.nodeName,", with the following attributes"
+                print child.attributes
+                for atr in child.attributes.keys():
+                    print atr
+                    if atr in self.structs[child.nodeName].attributes:
+                        print "Yeah found one attr"
+                    else:
+                        print "Bummer, unknown attribute",atr
+                    
 class Struct(object):
     def __init__(self):
         self.attributes = []
@@ -174,7 +188,9 @@ dom = xml.dom.minidom.parse("rcdstructure.xml")
 rcdstructure = Structures()
 rcdstructure.loadfromDOM(dom.getElementsByTagName("structures").item(0))
 
-rcdstructure.writeH()
+#rcdstructure.writeH()
+#rcdstructure.writeCPP()
 
-rcdstructure.writeCPP()
-
+dom = xml.dom.minidom.parse("freerct.xml")
+rcdstructure.creatercdfile(dom.getElementsByTagName("rcdfile").item(0))
+# maybe create multiple rcd files ?
