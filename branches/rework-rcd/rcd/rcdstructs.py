@@ -54,6 +54,7 @@ class Struct(object):
             atr.writeCPPstructdef()
         print "};"
         print ""
+        
         print "/** Clear the",self.magic,"sprite data. */"
         print "void "+self.cclass+"::Clear()"
         print "{"
