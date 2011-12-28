@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<structures magic='RCDF' version="1">
+<structures magic="RCDF" version="1">
 	<struct class="platform" magic="PLAT" version="1">
 		<attribute type="uint16" name="width">Zoom-width of a tile of the surface</attribute>
 		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
@@ -13,7 +13,7 @@
 		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
 		<attribute type="Sprite" name="sprites" count="6" />
 	</struct>
-	<struct class="ScrollbarSpriteData " magic="GSCL" version="2">
+	<struct class="ScrollbarSpriteData" magic="GSCL" version="2">
 		<attribute type="uint8" name="min_length_all">Minimal length scrollbar</attribute>
 		<attribute type="uint8" name="stepsize_bar">Stepsize of background</attribute>
 		<attribute type="uint8" name="min_length_slider">Minimal length bar</attribute>
@@ -83,6 +83,4 @@
 		<attribute type="uint16" name="height">Change in Z height of the tiles</attribute>
 		<attribute type="Sprite" name="sprites" count="51" const="PATH_COUNT" />
 	</struct>
-<structures>
-	
-	
+</structures>
