@@ -33,14 +33,16 @@ class Structures(object):
         # open()
         for child in node.childNodes:
             if child.nodeType == node.ELEMENT_NODE and child.nodeName in self.structs:
-                print "I've got one",child.nodeName,", with the following attributes"
-                print child.attributes
+                #print "I've got one",child.nodeName,", with the following attributes"
+                #print child.attributes.keys
                 for atr in child.attributes.keys():
-                    print atr
-                    if atr in self.structs[child.nodeName].attributes:
-                        print "Yeah found one attr"
+                    #print atr
+                    structatr = self.structs[child.nodeName].searchforattribute(atr)
+                    if structatr != None:
+                        #print "Yeah found one attr"
+                        a=1
                     else:
-                        print "Bummer, unknown attribute",atr
+                        print "Bummer, unknown attribute",atr,"with struct",child.nodeName
                     
 class Struct(object):
     def __init__(self):
@@ -49,11 +51,20 @@ class Struct(object):
         self.magic = 'XXXX'
         self.version = 0
 
+    def searchforattribute(self,name):
+        for i in self.attributes:
+            if name == i.name:
+                return i
+        return None
+    
     def loadfromDOM(self,node):
-        self.cclass = node.getAttribute("class")
         self.magic = node.getAttribute("magic")
         self.version = node.getAttribute("version")
         # calc a hash of attribute types ???
+        if node.hasAttribute("class"):
+            self.cclass = node.getAttribute("class")
+        else:
+            self.cclass = "SpriteData"+self.magic+self.version
         anodes = node.getElementsByTagName("attribute")
         for i in anodes:
             attr = Attribute()
@@ -64,7 +75,7 @@ class Struct(object):
     def writeHcode(self):
         print "/**"
         print " * %Sprite data for "+self.magic+" RCD structure."
-        print " * @ingroup gui_sprites_group (why?)"
+        print " * @ingroup gui_sprites_group"
         print " */"
         print "struct "+self.cclass+" {"
         print "    void Clear();"
@@ -86,7 +97,7 @@ class Struct(object):
         print ""
 
         print "/**"
-        print " * Load "+self.magic+" game block from a RCD file."
+        print " * Load "+self.magic+"/"+self.version+" game block from a RCD file."
         print " * @param rcd_file RCD file used for loading."
         print " * @param length Length of the data part of the block."
         print " * @param sprites Map of already loaded sprites."
@@ -103,7 +114,7 @@ class Struct(object):
             atr.writeCPPget()
         print "}"
         print ""
-        
+
 
 class Attribute(object):
     def __init__(self):
@@ -123,13 +134,13 @@ class Attribute(object):
         if node.firstChild != None:
             self.comment = node.firstChild.nodeValue
             #print self.comment,node.firstChild.nodeType
-            # doe iets als er meer childeren are, which are of type 3 NODE_TEXT?
+            # doe iets als er meer childeren are, which are of type 3 node.NODE_TEXT?
 
     def writeHstructdef(self):
         if self.type == "Sprite":
-            print "    Sprite *"+self.name+"["+self.count+"]; ///< "+self.comment
+            print "    Sprite *"+self.name+"["+self.count+"];\t///< "+self.comment
         else:
-            print "    "+self.type+" "+self.name+"; ///< "+self.comment
+            print "    "+self.type+" "+self.name+";\t///< "+self.comment
             
     def writeCPPcleartruct(self):
         if self.type == "Sprite":
