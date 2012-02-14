@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<rcdfile filename="freerct.rcd">
-	<SURF type="10" width="64" height="64">
-		<surface>
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png" xoffset="0" yoffset="0" width="64" height="64" />
-		</surface>
-	</SURF>
-	
+<rcdfiles>
 	<gameblock magic="TSEL" version="1" width="64" extra="5">   <!-- Tile selection width,deltaz -->
 		<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6">../source.../iets.png</addimages>
 	</gameblock>
@@ -34,21 +28,18 @@
 			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="1" fname="../sprites_src/objects/1x1/gui/orthbuildmark8bpp64.png" xoffset="0" yoffset="0" width="64" height="64" />
 		</sprites>
 	</BDIR>
-
-	<FUND width="64" height="64" type="32">
-		<surface>
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="2" rows="3" fname="../sprites_src/terrain/foundation/template8bpp64_masked.png" xoffset="-32" yoffset="-33" width="64" height="64" />
-		</surface>
-	</FUND>
-
-	<file id="foundation" fname="foundation_8bpp64.rcd" magic="RCDF" version="1">
-		<gameblock magic="FUND" version="1" sprites="6">  <!-- Foundation block -->
-			<attribute type="int16" value="16" /> <!-- type -->
-			<attribute type="int16" value="64" /> <!-- width -->
-			<attribute type="int16" value="16" /> <!-- deltaz -->
-			<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="2" rows="3" fname="../sprites_src/terrain/foundation/template8bpp64_masked.png" xoffset="-32" yoffset="-33" width="64" height="64" />
-		</gameblock>
-	</file>
+	<rcdfile id="foundation" filename="foundation_8bpp64.rcd">
+		<FUND width="64" height="64" type="32">
+			<surface>
+				<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="2" rows="3" fname="../sprites_src/terrain/foundation/template8bpp64_masked.png" xoffset="-32" yoffset="-33" width="64" height="64" />
+			</surface>
+		</FUND>
+		<SURF type="10" width="64" height="64">
+			<surface>
+				<addimages xorigin="0" yorigin="0" xstep="64" ystep="64" colums="4" rows="6" fname="../sprites_src/terrain/groundtiles/tileselection8bpp64_masked.png" xoffset="0" yoffset="0" width="64" height="64" />
+			</surface>
+		</SURF>
+	</rcdfile>
 	<file id="path" fname="path_8bpp64.rcd" magic="RCDF" version="1">
 		<gameblock magic="PATH" version="1" sprites="51">  <!-- Path -->
 			<attribute type="int16" value="16" /> <!-- type -->
@@ -136,4 +127,4 @@ path_8bpp64.rcd
 
 -->
 
-</rcdfile>
+</rcdfiles>

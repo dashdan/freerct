@@ -150,8 +150,6 @@ class gameblock(object):
         out.uint32(self.sizeofparams())
         self.writeparams(out)
         
-dom = xml.dom.minidom.parse(fname)
-
 class rcdfile(object):
     def __init__(self,fdom):
         self.gameblocks = []
@@ -174,7 +172,10 @@ class rcdfile(object):
         for i in self.gameblocks:
             i.writetofile(out)
         out.close()
-                    
+
+
+dom = xml.dom.minidom.parse(fname)
+
 fdom = dom.getElementsByTagName("file")
 for f in fdom:
     #print f.getAttribute("id")

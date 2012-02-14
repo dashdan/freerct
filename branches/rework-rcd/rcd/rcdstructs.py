@@ -40,7 +40,7 @@ class Structures(object):
                     structatr = self.structs[child.nodeName].searchforattribute(atr)
                     if structatr != None:
                         #print "Yeah found one attr"
-                        a=1
+                        a=1  /////////////// hier moet iets gebeuren
                     else:
                         print "Bummer, unknown attribute",atr,"with struct",child.nodeName
                     
@@ -166,7 +166,7 @@ class Attribute(object):
             gettype = "GetInt32"
         elif self.type == "Sprite":
             if self.const != '':
-                print "#assert",self.const,"==",self.count
+                print "assert_compile("+self.const+"=="+self.count+")"
             print "for (uint sprnum = 0; sprnum <",self.count,"; sprnum++) {"
             print "  uint32 val = rcd_file->GetUInt32();"
             print "  Sprite *spr;"
@@ -199,8 +199,8 @@ dom = xml.dom.minidom.parse("rcdstructure.xml")
 rcdstructure = Structures()
 rcdstructure.loadfromDOM(dom.getElementsByTagName("structures").item(0))
 
-#rcdstructure.writeH()
-#rcdstructure.writeCPP()
+rcdstructure.writeH()
+rcdstructure.writeCPP()
 
 dom = xml.dom.minidom.parse("freerct.xml")
 rcdstructure.creatercdfile(dom.getElementsByTagName("rcdfile").item(0))
