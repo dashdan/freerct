@@ -145,7 +145,7 @@ A set of ground tiles that form a smooth surface.
    4 &  4 & Version number of the block `3'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
   12 &  2 & (added in version 2) Type of ground. \\
-  14 &  2 & Width of a tile of the surface. \\
+  14 &  2 & Zoom-width of a tile of the surface. \\
   16 &  2 & Change in Z height (in pixels) when going up or down a tile level. \\
   18 & 72 & Tile surface sprite sub-block for north viewing direction. \\
   90 &  0 & (removed in version 3) Tile surface sprite sub-block for east viewing direction. \\
@@ -183,7 +183,7 @@ no type.
    0 &  4 & Magic string `TSEL' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & Zoom-width of a tile of the surface. \\
   14 &  2 & Change in Z height (in pixels) when going up or down a tile level. \\
   16 & 72 & Tile surface sprite sub-block. \\ \hline
   88 & \multicolumn{2}{l|}{Total length} \\ \hline
@@ -197,7 +197,7 @@ no type.
    0 &  4 & Magic string `TARE' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & zoom-width of a tile of the surface. \\
   14 &  2 & Change in Z height (in pixels) when going up or down a tile level. \\
   16 & 72 & Tile surface sprite sub-block. \\ \hline
   88 & \multicolumn{2}{l|}{Total length} \\ \hline
@@ -212,7 +212,7 @@ no type.
    0 &  4 & Magic string `PARE' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & Zoom-width of a tile of the surface. \\
   14 &  2 & Change in Z height (in pixels) when going up or down a tile level. \\
   16 & 72 & Tile surface sprite sub-block. \\ \hline
   88 & \multicolumn{2}{l|}{Total length} \\ \hline
@@ -227,7 +227,7 @@ no type.
    0 &  4 & Magic string `TCOR' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & Zoom-width of a tile of the surface. \\
   14 &  2 & Change in Z height (in pixels) when going up or down a tile level. \\
   16 & 72 & Tile surface sprite sub-block for selected corner pointing north. \\
   88 & 72 & Tile surface sprite sub-block for selected corner pointing east. \\
@@ -247,7 +247,7 @@ One tile objects.
    0 &  4 & Magic string `SHOP' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & Zoom-width of a tile of the surface. \\
   14 &  2 & Height of the shop in voxels. \\
   16 &  4 & View to the north where the entrance is at the NE edge. \\
   20 &  4 & View to the north where the entrance is at the SE edge. \\
@@ -265,7 +265,7 @@ One tile objects.
    0 &  4 & Magic string `BDIR' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & Zoom-width of a tile of the surface. \\
   14 &  4 & Arrow pointing to NE edge. \\
   18 &  4 & Arrow pointing to SE edge. \\
   22 &  4 & Arrow pointing to SW edge. \\
@@ -288,7 +288,7 @@ Vertical foundations to close gaps in the smooth surface.
   4 &  4 & Version number of the block `1'. \\
   8 &  4 & Length of the block excluding magic string, version, and length. \\
  12 &  2 & Type of foundation. \\
- 14 &  2 & Width of a tile. \\
+ 14 &  2 & Zoom-width of a tile. \\
  16 &  2 & Change in Z height of the tiles. \\
  18 &  4 & Vertical south-east foundation, east up, south down. \\
  22 &  4 & Vertical south-east foundation, east down, south up. \\
@@ -339,7 +339,7 @@ Known types of path surface:
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
   12 &  2 & Type of path surface. \\
-  14 &  2 & Width of a tile. \\
+  14 &  2 & Zoom-width of a tile. \\
   16 &  2 & Change in Z height of the tiles. \\
   18 &  4 & - (empty) \\
   22 &  4 & NE \\
@@ -411,7 +411,7 @@ Known types of path surface:
    0 &  4 & Magic string `PLAT' \\
    4 &  4 & Version number of the block `1'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  2 & Width of a tile of the surface. \\
+  12 &  2 & Zoom-width of a tile of the surface. \\
   14 &  2 & Change in Z height (in pixels) when going up or down a tile level. \\
   16 &  2 & Platform type. \\
   18 &  4 & Flat platform for north and south view. \\
@@ -482,27 +482,27 @@ That leads to the following block:
 \begin{tabular}{|r|c|l|} \hline
 \textbf{Offset} & \textbf{Length} & \textbf{Contents description} \\ \hline
    0 &  4 & Magic string `GBOR' \\
-   4 &  4 & Version number of the block `1'. \\
+   4 &  4 & Version number of the block `2'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
   12 &  2 & Widget type. \\
-  14 &  1 & Border width of the top edge. \\
-  15 &  1 & Border width of the left edge. \\
-  16 &  1 & Border width of the right edge. \\
-  17 &  1 & Border width of the bottom edge. \\
-  18 &  1 & Minimal width of the border. \\
-  19 &  1 & Minimal height of the border. \\
-  20 &  1 & Horizontal stepsize of the border. \\
-  21 &  1 & Vertical stepsize of the border. \\
-  22 &  4 & Top-left sprite. \\
-  26 &  4 & Top-middle sprite. \\
-  30 &  4 & Top-right sprite. \\
-  34 &  4 & Left sprite. \\
-  38 &  4 & Middle sprite. \\
-  42 &  4 & Right sprite. \\
-  46 &  4 & Bottom-left sprite. \\
-  50 &  4 & Bottom-middle sprite. \\
-  54 &  4 & Bottom-right sprite. \\
-  58 & \multicolumn{2}{l|}{Total length} \\ \hline
+  14 &  2 & Border width of the top edge (version 1 was 1 byte). \\
+  16 &  2 & Border width of the left edge (version 1 was 1 byte). \\
+  18 &  2 & Border width of the right edge (version 1 was 1 byte). \\
+  20 &  2 & Border width of the bottom edge (version 1 was 1 byte). \\
+  22 &  2 & Minimal width of the border (version 1 was 1 byte). \\
+  24 &  2 & Minimal height of the border (version 1 was 1 byte). \\
+  26 &  2 & Horizontal stepsize of the border (version 1 was 1 byte). \\
+  28 &  2 & Vertical stepsize of the border (version 1 was 1 byte). \\
+  30 &  4 & Top-left sprite. \\
+  34 &  4 & Top-middle sprite. \\
+  38 &  4 & Top-right sprite. \\
+  42 &  4 & Left sprite. \\
+  46 &  4 & Middle sprite. \\
+  50 &  4 & Right sprite. \\
+  54 &  4 & Bottom-left sprite. \\
+  58 &  4 & Bottom-middle sprite. \\
+  62 &  4 & Bottom-right sprite. \\
+  66 & \multicolumn{2}{l|}{Total length} \\ \hline
 \end{tabular}
 \end{center}
 
@@ -551,17 +551,17 @@ should be used.
 \begin{tabular}{|r|c|l|} \hline
 \textbf{Offset} & \textbf{Length} & \textbf{Contents description} \\ \hline
    0 &  4 & Magic string `GSLI' \\
-   4 &  4 & Version number of the block `1'. \\
+   4 &  4 & Version number of the block `2'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  1 & Minimal length of the bar. \\
-  13 &  1 & Stepsize of the bar. \\
-  14 &  1 & Width of the slider button. \\
-  15 &  2 & Widget type. \\
-  17 &  4 & Left sprite. \\
-  21 &  4 & Middle sprite. \\
-  25 &  4 & Right sprite. \\
-  29 &  4 & Slider button. \\
-  33 & \multicolumn{2}{l|}{Total length} \\ \hline
+  12 &  2 & Minimal length of the bar (version 1 was 1 byte). \\
+  14 &  2 & Stepsize of the bar (version 1 was 1 byte). \\
+  16 &  2 & Width of the slider button (version 1 was 1 byte). \\
+  18 &  2 & Widget type. \\
+  20 &  4 & Left sprite. \\
+  24 &  4 & Middle sprite. \\
+  28 &  4 & Right sprite. \\
+  32 &  4 & Slider button. \\
+  36 & \multicolumn{2}{l|}{Total length} \\ \hline
 \end{tabular}
 \end{center}
 
@@ -581,27 +581,27 @@ should be used.
 \begin{tabular}{|r|c|l|} \hline
 \textbf{Offset} & \textbf{Length} & \textbf{Contents description} \\ \hline
    0 &  4 & Magic string `GSCL' \\
-   4 &  4 & Version number of the block `1'. \\
+   4 &  4 & Version number of the block `2'. \\
    8 &  4 & Length of the block excluding magic string, version, and length. \\
-  12 &  1 & Minimal length scrollbar. \\
-  13 &  1 & Stepsize of background. \\
-  14 &  1 & Minimal length bar. \\
-  15 &  1 & Stepsize of bar. \\
-  16 &  2 & Widget type. \\
-  18 &  4 & Left/up button. \\
-  22 &  4 & Right/down button. \\ \hline
-  26 &  4 & Left/up pressed button. \\
-  30 &  4 & Right/down pressed button. \\ \hline
-  34 &  4 & Left/top bar bottom (the background). \\
-  38 &  4 & Middle bar bottom (the background). \\
-  42 &  4 & Right/down bar bottom (the background). \\ \hline
-  46 &  4 & Left/top bar top. \\
-  50 &  4 & Middle bar top. \\
-  54 &  4 & Right/down bar top. \\ \hline
-  58 &  4 & Left/top pressed bar top. \\
-  62 &  4 & Middle pressed bar top. \\
-  66 &  4 & Right/down pressed bar top. \\ \hline
-  70 & \multicolumn{2}{l|}{Total length} \\ \hline
+  12 &  2 & Minimal length scrollbar (version 1 was 1 byte). \\
+  14 &  2 & Stepsize of background (version 1 was 1 byte). \\
+  16 &  2 & Minimal length bar (version 1 was 1 byte). \\
+  18 &  2 & Stepsize of bar (version 1 was 1 byte). \\
+  20 &  2 & Widget type. \\
+  22 &  4 & Left/up button. \\
+  26 &  4 & Right/down button. \\ \hline
+  30 &  4 & Left/up pressed button. \\
+  34 &  4 & Right/down pressed button. \\ \hline
+  38 &  4 & Left/top bar bottom (the background). \\
+  42 &  4 & Middle bar bottom (the background). \\
+  46 &  4 & Right/down bar bottom (the background). \\ \hline
+  50 &  4 & Left/top bar top. \\
+  54 &  4 & Middle bar top. \\
+  58 &  4 & Right/down bar top. \\ \hline
+  62 &  4 & Left/top pressed bar top. \\
+  66 &  4 & Middle pressed bar top. \\
+  70 &  4 & Right/down pressed bar top. \\ \hline
+  74 & \multicolumn{2}{l|}{Total length} \\ \hline
 \end{tabular}
 \end{center}
 

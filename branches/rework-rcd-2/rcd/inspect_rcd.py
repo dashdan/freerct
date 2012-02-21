@@ -39,6 +39,7 @@ class RCD(object):
 blocks = {'8PAL' : 1, '8PXL' : 1, 'SPRT' : 2, 'SURF' : 3}
 
 def list_blocks(rcd):
+    stat = {}
     sz = rcd.get_size()
 
     rcd_name = rcd.name(0)
@@ -61,13 +62,20 @@ def list_blocks(rcd):
         print "    Version: " + str(version)
         print "    Length: " + str(length)
         print
-        if name not in blocks or blocks[name] != version:
-            print "ERROR"
-            return
+        if repr(name) in stat:
+            stat[repr(name)] = stat[repr(name)] + 1
+        else:
+            stat[repr(name)] = 1
+        #if name not in blocks or blocks[name] != version:
+        #    print "ERROR"
+        #    return
 
         assert length > 0
         offset = offset + 12 + length
     assert offset == sz
+    print "Statistics"
+    for i in stat:
+        print i,stat[i]
 
 if len(sys.argv) == 1:
     print "Missing RCD file argument."
