@@ -234,9 +234,9 @@ def add_scrollbar(im, rcd, widget_num, imgdata):
     @type  imgdata: C{dict} of C{str} to various.
     """
     if widget_num == HOR_SHADED_SCROLLBAR or widget_num == HOR_NORMAL_SCROLLBAR:
-        left, right = 'left', 'right'
+        left, right = 'leftup', 'rightdown'
     else:
-        left, right = 'up', 'down'
+        left, right = 'leftup', 'rightdown'
 
     names = [left, right,
              left+'-pressed', right+'-pressed',
