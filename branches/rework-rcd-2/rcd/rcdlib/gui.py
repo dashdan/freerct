@@ -233,21 +233,16 @@ def add_scrollbar(im, rcd, widget_num, imgdata):
                     {top/left/right/bottom}-border width setting.
     @type  imgdata: C{dict} of C{str} to various.
     """
-    if widget_num == HOR_SHADED_SCROLLBAR or widget_num == HOR_NORMAL_SCROLLBAR:
-        left, right = 'leftup', 'rightdown'
-    else:
-        left, right = 'leftup', 'rightdown'
-
-    names = [left, right,
-             left+'-pressed', right+'-pressed',
-             left+'-under', 'middle-under', right+'-under',
-             left+'-select', 'middle-select', right+'-select',
-             left+'-pressed-select', 'middle-pressed-select', right+'-pressed-select']
+    names = ['leftup', 'rightdown',
+             'leftup-pressed', 'rightdown-pressed',
+             'leftup-under', 'middle-under', 'rightdown-under',
+             'leftup-select', 'middle-select', 'rightdown-select',
+             'leftup-pressed-select', 'middle-pressed-select', 'rightdown-pressed-select']
 
     # No pressed variants available yet, re-use the unpressed ones.
-    imgdata[left+'-pressed-select'] = imgdata[left+'-select']
+    imgdata['leftup-pressed-select'] = imgdata['leftup-select']
     imgdata['middle-pressed-select'] = imgdata['middle-select']
-    imgdata[right+'-pressed-select'] = imgdata[right+'-select']
+    imgdata['rightdown-pressed-select'] = imgdata['rightdown-select']
 
 
 
@@ -274,8 +269,8 @@ def add_scrollbar(im, rcd, widget_num, imgdata):
 
         imgs[name] = rcd.add_block(spr_blk)
 
-    scroll_len = [imos[left], imos[right], imos[left+'-under'], imos[right+'-under'], imos['middle-under']]
-    select_len = [imos[left+'-select'], imos['middle-select'], imos[right+'-select']]
+    scroll_len = [imos['leftup'], imos['rightdown'], imos['leftup-under'], imos['rightdown-under'], imos['middle-under']]
+    select_len = [imos['leftup-select'], imos['middle-select'], imos['rightdown-select']]
     scroll_step = imos['middle-under']
     select_step = imos['middle-select']
 
