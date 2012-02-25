@@ -40,7 +40,8 @@ def write_foundationRCD(images, tile_width, tile_height, found_type, verbose, de
     spr['found_type'] = found_type
     spr['tile_width'] = tile_width
     spr['tile_height'] = tile_height
-    found = blocks.Foundation(spr)
+    found = blocks.block_factory.get_block('FUND', 1)
+    found.set_values(spr)
     file_data.add_block(found)
 
     file_data.to_file(dest_fname)

@@ -52,7 +52,8 @@ def write_groundRCD(images, tile_width, tile_height, ground_type, verbose, dest_
     values['ground_type'] = ground_type
     values['tile_width'] = tile_width
     values['z_height'] = tile_height
-    surf = blocks.Surface(values)
+    surf = blocks.block_factory.get_block('SURF', 3)
+    surf.set_values(values)
     file_data.add_block(surf)
 
     file_data.to_file(dest_fname)

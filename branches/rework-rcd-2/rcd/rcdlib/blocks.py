@@ -7,8 +7,6 @@
 #
 from rcdlib import output
 
-needed = ['', 'n', 'e', 'ne', 's', 'ns', 'es', 'nes', 'w', 'nw', 'ew', 'new', 'sw', 'nsw', 'esw', 'N', 'E', 'S', 'W']
-
 # {{{ class Block(object):
 class Block(object):
     """
@@ -87,16 +85,26 @@ class GeneralDataBlock(Block):
     """
     General data block class.
 
-    @ivar fields: Mapping of name to type for the fields in the block, where type is one of
-                  int8, uint8, int16 uint16 uint32 block.
+    @ivar fields: Mapping of name to type for the fields in the block, where
+                  type is one of int8, uint8, int16 uint16 uint32 block.
     @type fields: C{list} of (C{str}, C{str})
 
     @ivar values: Mapping of fields to numeric values.
-    @type values: C{dict} of C{str} to C{int}
+    @type values: C{dict} of C{str} to C{int}, or C{None} if not available
+                  during construction
     """
     def __init__(self, name, version, fields, values):
         Block.__init__(self, name, version)
         self.fields = fields
+        self.values = values
+
+    def set_values(self, values):
+        """
+        Set the values of the block.
+
+        @param values: Mapping of fields names to numeric values.
+        @type  values: C{dict} of C{str} to C{int}
+        """
         self.values = values
 
     def write(self, out):
@@ -161,30 +169,102 @@ class GeneralDataBlock(Block):
                 return False
         return True
 # }}}
-# {{{ class Foundation(GeneralDataBlock):
-class Foundation(GeneralDataBlock):
-    def __init__(self, values):
-        fields = [('found_type', 'uint16'),
-                  ('tile_width', 'uint16'),
-                  ('tile_height', 'uint16'),
-                  ('se_e', 'block'),
-                  ('se_s', 'block'),
-                  ('se_se', 'block'),
-                  ('sw_s', 'block'),
-                  ('sw_w', 'block'),
-                  ('sw_sw', 'block')]
-        GeneralDataBlock.__init__(self, 'FUND', 1, fields, values)
-# }}}
-# {{{ class CornerTile(GeneralDataBlock):
-class CornerTile(GeneralDataBlock):
-    def __init__(self, values):
-        fields = [('tile_width', 'uint16'),
-                  ('tile_height', 'uint16')]
-        fields.extend([('n#'+n, 'block') for n in needed])
-        fields.extend([('e#'+n, 'block') for n in needed])
-        fields.extend([('s#'+n, 'block') for n in needed])
-        fields.extend([('w#'+n, 'block') for n in needed])
-        GeneralDataBlock.__init__(self, 'TCOR', 1, fields, values)
+# {{{ class GameBlockFactory(object):
+_path_sprite_names = ['empty', 'ne', 'se', 'ne_se', 'ne_se_e', 'sw', 'ne_sw',
+    'se_sw', 'se_sw_s', 'ne_se_sw', 'ne_se_sw_e', 'ne_se_sw_s', 'ne_se_sw_e_s',
+    'nw', 'ne_nw', 'ne_nw_n', 'nw_se', 'ne_nw_se', 'ne_nw_se_n', 'ne_nw_se_e',
+    'ne_nw_se_n_e', 'nw_sw', 'nw_sw_w', 'ne_nw_sw', 'ne_nw_sw_n', 'ne_nw_sw_w',
+    'ne_nw_sw_n_w', 'nw_se_sw', 'nw_se_sw_s', 'nw_se_sw_w', 'nw_se_sw_s_w',
+    'ne_nw_se_sw', 'ne_nw_se_sw_n', 'ne_nw_se_sw_e', 'ne_nw_se_sw_n_e',
+    'ne_nw_se_sw_s', 'ne_nw_se_sw_n_s', 'ne_nw_se_sw_e_s', 'ne_nw_se_sw_n_e_s',
+    'ne_nw_se_sw_w', 'ne_nw_se_sw_n_w', 'ne_nw_se_sw_e_w', 'ne_nw_se_sw_n_e_w',
+    'ne_nw_se_sw_s_w', 'ne_nw_se_sw_n_s_w', 'ne_nw_se_sw_e_s_w',
+    'ne_nw_se_sw_n_e_s_w', 'ramp_ne', 'ramp_nw', 'ramp_se', 'ramp_sw']
+
+_needed = ['', 'n', 'e', 'ne', 's', 'ns', 'es', 'nes', 'w', 'nw', 'ew', 'new',
+           'sw', 'nsw', 'esw', 'N', 'E', 'S', 'W']
+
+#: Name of the 9 sprites decorating a rectangle.
+_decorating_sprites = ['top-left', 'top-middle', 'top-right',
+                       'left', 'middle', 'right',
+                       'bottom-left', 'bottom-middle', 'bottom-right']
+
+_scl_names = ['leftup', 'rightdown',
+              'leftup-pressed', 'rightdown-pressed',
+              'leftup-under', 'middle-under', 'rightdown-under',
+              'leftup-select', 'middle-select', 'rightdown-select',
+              'leftup-pressed-select', 'middle-pressed-select', 'rightdown-pressed-select']
+
+_game_blocks = {
+    ('FUND', 1) : [('found_type', 'uint16'),
+                   ('tile_width', 'uint16'),
+                   ('tile_height', 'uint16'),
+                   ('se_e', 'block'),
+                   ('se_s', 'block'),
+                   ('se_se', 'block'),
+                   ('sw_s', 'block'),
+                   ('sw_w', 'block'),
+                   ('sw_sw', 'block')],
+    ('TCOR', 1) : [('tile_width', 'uint16'),
+                   ('tile_height', 'uint16')] + \
+                  [('n#'+n, 'block') for n in _needed] + \
+                  [('e#'+n, 'block') for n in _needed] + \
+                  [('s#'+n, 'block') for n in _needed] + \
+                  [('w#'+n, 'block') for n in _needed],
+    ('SURF', 3) : [('ground_type', 'uint16'),
+                   ('tile_width', 'uint16'),
+                   ('z_height', 'uint16')] + \
+                  [('n#'+n, 'block') for n in _needed],
+    ('TSEL', 1) : [('tile_width', 'uint16'), ('z_height', 'uint16')] + \
+                  [('n#'+n, 'block') for n in _needed],
+    ('PATH', 1) : [('path_type', 'uint16'),
+                   ('tile_width', 'uint16'),
+                   ('z_height', 'uint16')] + \
+                  [(name, 'block') for name in _path_sprite_names],
+    ('BDIR', 1) : [('width', 'uint16'),
+                   ('ne', 'block'),
+                   ('se', 'block'),
+                   ('sw', 'block'),
+                   ('nw', 'block')],
+    ('GCHK', 1) : [('widget_num', 'uint16'),
+                   ('empty', 'block'),
+                   ('filled', 'block'),
+                   ('pressed', 'block'),
+                   ('pressed-filled', 'block'),
+                   ('shaded', 'block'),
+                   ('shaded-filled', 'block')],
+    ('GBOR', 1) : [('widget_num', 'uint16'),
+                   ('border-width-top', 'uint8'),
+                   ('border-width-left', 'uint8'),
+                   ('border-width-right', 'uint8'),
+                   ('border-width-bottom', 'uint8'),
+                   ('min-width-rect', 'uint8'),
+                   ('min-height-rect', 'uint8'),
+                   ('hor-stepsize', 'uint8'),
+                   ('vert-stepsize', 'uint8')] + \
+                  [(name, 'block') for name in _decorating_sprites],
+    ('GSCL', 1) : [('minimal-length-scrollbar', 'uint8'),
+                   ('stepsize-scrollbar', 'uint8'),
+                   ('minimal-length-select', 'uint8'),
+                   ('stepsize-select', 'uint8'),
+                   ('widget_num', 'uint16')] + \
+                  [(name, 'block') for name in _scl_names],
+               }
+
+class GameBlockFactory(object):
+    """
+    Factory class for constructing game blocks on demand.
+    """
+    def __init__(self):
+        pass
+
+    def get_block(self, name, version):
+        fields = _game_blocks[(name, version)]
+        gb = GeneralDataBlock(name, version, fields, None)
+        return gb
+
+block_factory = GameBlockFactory()
+
 # }}}
 # {{{ class Pixels8Bpp(GeneralDataBlock):
 class Pixels8Bpp(GeneralDataBlock):
@@ -207,51 +287,6 @@ class Sprite(GeneralDataBlock):
                   ('image', 'block')]
         values = {'x_offset' : xoff, 'y_offset' : yoff, 'image' : img_block}
         GeneralDataBlock.__init__(self, 'SPRT', 2, fields, values)
-# }}}
-# {{{ class Surface(GeneralDataBlock):
-class Surface(GeneralDataBlock):
-    """
-    Game block 'SURF'
-    """
-    def __init__(self, values):
-        fields = [('ground_type', 'uint16'),
-                  ('tile_width', 'uint16'),
-                  ('z_height', 'uint16')]
-        fields.extend([('n#'+n, 'block') for n in needed])
-        GeneralDataBlock.__init__(self, 'SURF', 3, fields, values)
-# }}}
-# {{{ class TileSelection(GeneralDataBlock):
-class TileSelection(GeneralDataBlock):
-    """
-    Game block 'TSEL'
-    """
-    def __init__(self, values):
-        fields = [('tile_width', 'uint16'), ('z_height', 'uint16')]
-        fields.extend([('n#'+n, 'block') for n in needed])
-        GeneralDataBlock.__init__(self, 'TSEL', 1, fields, values)
-# }}}
-# {{{ class Paths(GeneralDataBlock):
-path_sprite_names = ['empty', 'ne', 'se', 'ne_se', 'ne_se_e', 'sw', 'ne_sw',
-    'se_sw', 'se_sw_s', 'ne_se_sw', 'ne_se_sw_e', 'ne_se_sw_s', 'ne_se_sw_e_s',
-    'nw', 'ne_nw', 'ne_nw_n', 'nw_se', 'ne_nw_se', 'ne_nw_se_n', 'ne_nw_se_e',
-    'ne_nw_se_n_e', 'nw_sw', 'nw_sw_w', 'ne_nw_sw', 'ne_nw_sw_n', 'ne_nw_sw_w',
-    'ne_nw_sw_n_w', 'nw_se_sw', 'nw_se_sw_s', 'nw_se_sw_w', 'nw_se_sw_s_w',
-    'ne_nw_se_sw', 'ne_nw_se_sw_n', 'ne_nw_se_sw_e', 'ne_nw_se_sw_n_e',
-    'ne_nw_se_sw_s', 'ne_nw_se_sw_n_s', 'ne_nw_se_sw_e_s', 'ne_nw_se_sw_n_e_s',
-    'ne_nw_se_sw_w', 'ne_nw_se_sw_n_w', 'ne_nw_se_sw_e_w', 'ne_nw_se_sw_n_e_w',
-    'ne_nw_se_sw_s_w', 'ne_nw_se_sw_n_s_w', 'ne_nw_se_sw_e_s_w',
-    'ne_nw_se_sw_n_e_s_w', 'ramp_ne', 'ramp_nw', 'ramp_se', 'ramp_sw']
-
-class Paths(GeneralDataBlock):
-    """
-    Game block 'PATH'
-    """
-    def __init__(self, values):
-        fields = [('path_type', 'uint16'),
-                  ('tile_width', 'uint16'),
-                  ('z_height', 'uint16')]
-        fields.extend([(name, 'block') for name in path_sprite_names])
-        GeneralDataBlock.__init__(self, 'PATH', 1, fields, values)
 # }}}
 # {{{ class RCD(object):
 class RCD(object):

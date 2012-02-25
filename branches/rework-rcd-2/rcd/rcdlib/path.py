@@ -37,7 +37,8 @@ def write_pathRCD(images, path_type, tile_width, tile_height, verbose, dest_fnam
     spr['path_type'] = path_type
     spr['tile_width'] = tile_width
     spr['z_height'] = tile_height
-    surf = blocks.Paths(spr)
+    surf = blocks.block_factory.get_block('PATH', 1)
+    surf.set_values(spr)
     file_data.add_block(surf)
 
     file_data.to_file(dest_fname)

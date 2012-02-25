@@ -33,7 +33,8 @@ def write_cornerselectRCD(images, tile_width, tile_height, verbose, dest_fname):
 
     spr['tile_width'] = tile_width
     spr['tile_height'] = tile_height
-    tcor = blocks.CornerTile(spr)
+    tcor = blocks.block_factory.get_block('TCOR', 1)
+    tcor.set_values(spr)
     file_data.add_block(tcor)
 
     file_data.to_file(dest_fname)
