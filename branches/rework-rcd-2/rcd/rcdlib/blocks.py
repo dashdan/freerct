@@ -5,7 +5,7 @@
 # FreeRCT is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with FreeRCT. If not, see <http://www.gnu.org/licenses/>.
 #
-from rcdlib import output
+from rcdlib import output, structdef_loader
 
 # {{{ class Block(object):
 class Block(object):
@@ -170,96 +170,22 @@ class GeneralDataBlock(Block):
         return True
 # }}}
 # {{{ class GameBlockFactory(object):
-_path_sprite_names = ['empty', 'ne', 'se', 'ne_se', 'ne_se_e', 'sw', 'ne_sw',
-    'se_sw', 'se_sw_s', 'ne_se_sw', 'ne_se_sw_e', 'ne_se_sw_s', 'ne_se_sw_e_s',
-    'nw', 'ne_nw', 'ne_nw_n', 'nw_se', 'ne_nw_se', 'ne_nw_se_n', 'ne_nw_se_e',
-    'ne_nw_se_n_e', 'nw_sw', 'nw_sw_w', 'ne_nw_sw', 'ne_nw_sw_n', 'ne_nw_sw_w',
-    'ne_nw_sw_n_w', 'nw_se_sw', 'nw_se_sw_s', 'nw_se_sw_w', 'nw_se_sw_s_w',
-    'ne_nw_se_sw', 'ne_nw_se_sw_n', 'ne_nw_se_sw_e', 'ne_nw_se_sw_n_e',
-    'ne_nw_se_sw_s', 'ne_nw_se_sw_n_s', 'ne_nw_se_sw_e_s', 'ne_nw_se_sw_n_e_s',
-    'ne_nw_se_sw_w', 'ne_nw_se_sw_n_w', 'ne_nw_se_sw_e_w', 'ne_nw_se_sw_n_e_w',
-    'ne_nw_se_sw_s_w', 'ne_nw_se_sw_n_s_w', 'ne_nw_se_sw_e_s_w',
-    'ne_nw_se_sw_n_e_s_w', 'ramp_ne', 'ramp_nw', 'ramp_se', 'ramp_sw']
-
-_needed = ['', 'n', 'e', 'ne', 's', 'ns', 'es', 'nes', 'w', 'nw', 'ew', 'new',
-           'sw', 'nsw', 'esw', 'N', 'E', 'S', 'W']
-
-#: Name of the 9 sprites decorating a rectangle.
-_decorating_sprites = ['top-left', 'top-middle', 'top-right',
-                       'left', 'middle', 'right',
-                       'bottom-left', 'bottom-middle', 'bottom-right']
-
-_scl_names = ['leftup', 'rightdown',
-              'leftup-pressed', 'rightdown-pressed',
-              'leftup-under', 'middle-under', 'rightdown-under',
-              'leftup-select', 'middle-select', 'rightdown-select',
-              'leftup-pressed-select', 'middle-pressed-select', 'rightdown-pressed-select']
-
-_game_blocks = {
-    ('FUND', 1) : [('found_type', 'uint16'),
-                   ('tile_width', 'uint16'),
-                   ('tile_height', 'uint16'),
-                   ('se_e', 'block'),
-                   ('se_s', 'block'),
-                   ('se_se', 'block'),
-                   ('sw_s', 'block'),
-                   ('sw_w', 'block'),
-                   ('sw_sw', 'block')],
-    ('TCOR', 1) : [('tile_width', 'uint16'),
-                   ('tile_height', 'uint16')] + \
-                  [('n#'+n, 'block') for n in _needed] + \
-                  [('e#'+n, 'block') for n in _needed] + \
-                  [('s#'+n, 'block') for n in _needed] + \
-                  [('w#'+n, 'block') for n in _needed],
-    ('SURF', 3) : [('ground_type', 'uint16'),
-                   ('tile_width', 'uint16'),
-                   ('z_height', 'uint16')] + \
-                  [('n#'+n, 'block') for n in _needed],
-    ('TSEL', 1) : [('tile_width', 'uint16'), ('z_height', 'uint16')] + \
-                  [('n#'+n, 'block') for n in _needed],
-    ('PATH', 1) : [('path_type', 'uint16'),
-                   ('tile_width', 'uint16'),
-                   ('z_height', 'uint16')] + \
-                  [(name, 'block') for name in _path_sprite_names],
-    ('BDIR', 1) : [('width', 'uint16'),
-                   ('ne', 'block'),
-                   ('se', 'block'),
-                   ('sw', 'block'),
-                   ('nw', 'block')],
-    ('GCHK', 1) : [('widget_num', 'uint16'),
-                   ('empty', 'block'),
-                   ('filled', 'block'),
-                   ('pressed', 'block'),
-                   ('pressed-filled', 'block'),
-                   ('shaded', 'block'),
-                   ('shaded-filled', 'block')],
-    ('GBOR', 1) : [('widget_num', 'uint16'),
-                   ('border-width-top', 'uint8'),
-                   ('border-width-left', 'uint8'),
-                   ('border-width-right', 'uint8'),
-                   ('border-width-bottom', 'uint8'),
-                   ('min-width-rect', 'uint8'),
-                   ('min-height-rect', 'uint8'),
-                   ('hor-stepsize', 'uint8'),
-                   ('vert-stepsize', 'uint8')] + \
-                  [(name, 'block') for name in _decorating_sprites],
-    ('GSCL', 1) : [('minimal-length-scrollbar', 'uint8'),
-                   ('stepsize-scrollbar', 'uint8'),
-                   ('minimal-length-select', 'uint8'),
-                   ('stepsize-select', 'uint8'),
-                   ('widget_num', 'uint16')] + \
-                  [(name, 'block') for name in _scl_names],
-               }
-
 class GameBlockFactory(object):
     """
     Factory class for constructing game blocks on demand.
+
+    @ivar struct_def: Structure definition of the game blocks.
+    @type struct_def: L{structdef_loader.Structures}
     """
     def __init__(self):
-        pass
+        self.struct_def = structdef_loader.loadfromDOM('structdef.xml')
 
     def get_block(self, name, version):
-        fields = _game_blocks[(name, version)]
+        block = self.struct_def.get_block(name)
+        if block is None or version < block.minversion or version > block.maxversion:
+            raise ValueError("Cannot find gameblock %r, %r" % (name, version))
+
+        fields = [(f.name, f.type) for f in block.get_fields(version)]
         gb = GeneralDataBlock(name, version, fields, None)
         return gb
 
