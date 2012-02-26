@@ -53,15 +53,15 @@ def list_blocks(rcd):
         return
 
     offset = 8
+    number = 1
     while offset < sz:
         name = rcd.name(offset)
         version = rcd.uint32(offset + 4)
         length = rcd.uint32(offset + 8)
-        print "%06X" % offset
+        print "%06X (block %d)" % (offset, number)
         print "    Name: " + repr(name)
         print "    Version: " + str(version)
         print "    Length: " + str(length)
-        print
         if repr(name) in stat:
             stat[repr(name)] = stat[repr(name)] + 1
         else:
@@ -70,8 +70,22 @@ def list_blocks(rcd):
         #    print "ERROR"
         #    return
 
+        if name == 'FUND' and version == 1:
+            print "    FUND type: "   + str(rcd.uint16(offset + 12))
+            print "    FUND width: "  + str(rcd.uint16(offset + 14))
+            print "    FUND height: " + str(rcd.uint16(offset + 16))
+            print "    FUND se_e: "   + str(rcd.uint16(offset + 18))
+            print "    FUND se_s: "   + str(rcd.uint16(offset + 22))
+            print "    FUND se_es: "  + str(rcd.uint16(offset + 26))
+            print "    FUND ws_s: "   + str(rcd.uint16(offset + 30))
+            print "    FUND ws_w: "   + str(rcd.uint16(offset + 34))
+            print "    FUND ws_ws: "  + str(rcd.uint16(offset + 38))
+
+        print
+
         assert length > 0
         offset = offset + 12 + length
+        number = number + 1
     assert offset == sz
     print "Statistics"
     for i in stat:
