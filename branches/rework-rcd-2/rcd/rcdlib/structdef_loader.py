@@ -103,15 +103,15 @@ class Block(object):
         @param version: Version number of the game data.
         @type  version: C{int}
 
-        @return: The fields which are valid for the given version in the same
-                 order as in the structure definition.
-        @rtype:  C{list} of L{Field}
+        @return: If the version is valid, the fields which are valid for the
+                 given version in the same order as in the structure definition.
+        @rtype:  C{None} or C{list} of L{Field}
         """
-        if self.minversion > version: return []
-        if self.maxversion < version: return []
+        if self.minversion > version: return None
+        if self.maxversion < version: return None
 
         flds = []
-        fld_names = set()
+        fld_names = set() # Paranoia checking for unique field-names.
         for fld in self.fields:
             if fld.minversion is not None and fld.minversion > version: continue
             if fld.maxversion is not None and fld.maxversion < version: continue

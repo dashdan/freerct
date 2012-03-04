@@ -232,6 +232,16 @@ class RCD(object):
                 return idx + 1
 
         self.blocks.append(block)
+        #if isinstance(block, Pixels8Bpp):
+        #    print "Pixel block number %d" % len(self.blocks)
+        #    print "width = %d, height = %d" % (block.values['width'], block.values['height'])
+        #    for y, data in enumerate(block.values['lines']):
+        #        if data is None:
+        #            print "%2d: - empty -" % y
+        #        else:
+        #            print "%2d: %s" % (y, ' '.join('%02x' % ord(c) for c in data))
+        #    print
+
         return len(self.blocks)
 
     def write(self, out):
