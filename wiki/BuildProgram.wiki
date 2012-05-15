@@ -56,13 +56,13 @@ $ make lang
 
 == Config file ==
 
-Finally, you need a 'freerct.cfg' file next to the 'freerct' program, containing the path to the font file you want to use. It looks like
+Finally, you need a 'freerct.cfg' INI format file next to the 'freerct' program, containing the path to the font file you want to use. It looks like
 
-<pre>
+{{{
 [font]
 medium-size = 12
 medium-path = /usr/share/fonts/gnu-free/FreeSans.ttf
-</pre>
+}}}
 
 This means the medium sized font is 12 points high, and its source font definition file is at the indicated path. Make sure you use a path that actually exists.
 
