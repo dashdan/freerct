@@ -17,5 +17,5 @@ Game content
 Game components:
   * Track rides consist of the graphics for the track components, the metadata encoding track component shapes and some other key data encoding properties like; crash on negative vertical G force, swing out on corners, inverted cars, constantly powered/free moving, etc. Graphics for the ride cars and passengers are also included. (track rides also lend themselves to submodules; alternative cars, new track components etc.)
   * Simple rides consist of the graphics for the ride and some simple scripts as to how they should be displayed. Key ride properties, excitingness, nausea, etc., are also included.
-  * Shops consist of the graphics for the shop, details of what item(s) the shop cells and the behavior of those items. It also provides sprites to represent the guest carrying that item.
+  * Shops consist of the graphics for the shop, details of what item(s) the shop sells and the behavior of those items. It also provides sprites to represent the guest carrying that item.
   * Scenery simply consists of the graphics and and a class which provides information about the scenery styling for grouping with other similar scenery items.
