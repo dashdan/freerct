@@ -8,7 +8,7 @@ There are four types of staff:
 
 
 Handymen have the following roles:
-  * Scrubbing paths to remove vomit and litter (messy paths reduced guest happiness)
+  * Scrubbing paths to remove vomit and litter (messy paths reduce guest happiness)
   * Maintaining scenery objects which require maintenance (e.g. flower beds require watering)
   * Emptying bins (to prevent overflowing)
   * Maintaining terrain which requires maintenance (e.g. mowing grass)
