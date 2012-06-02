@@ -13,7 +13,7 @@ These can be subcategorised by type:
   * Objects
   * Trees and flowers
 
-Some scenery items have specific functionality, for example the path decoration which was is sign can be used to close that path to guests. Some scenery has specific requirements, for example flower beds which have to be watered by a handyman else the plants will gradually die.
+Some scenery items have specific functionality, for example the over-path sign which is placed on paths. This can be used to close that section of path to guests. Some scenery has specific requirements, for example flower beds which have to be watered by a handyman else the plants will gradually die.
 
 Different terrain and support types are a related feature. All land tiles can be given one of several ground types, rocks, grass, sand, etc., and foundation type, bare, wood, rock, etc.  Similarly different path types are available. Some ground types have special maintenance requirements, like grass which requires mowing by a handyman to stay in a format pleasing to guests.
 
