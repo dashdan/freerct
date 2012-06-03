@@ -1,0 +1,15 @@
+#summary Elements in the program and how they behave
+
+This page serves as a table of contents to the wiki pages documenting what the program will contain, and how they interact with each other.
+
+*Most of what is discussed here is not yet implemented*
+
+= Global design =
+ * GameContent
+ * [Interface]
+
+= Park items =
+ * ParkScenery
+ * ParkStaff
+ * ParkGuests
+ * ParkGuestItems
