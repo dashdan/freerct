@@ -1,5 +1,4 @@
 #summary Build instructions
-#labels Featured
 
 = FreeRCT build instructions =
 
