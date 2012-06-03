@@ -9,8 +9,11 @@ Globally, three things are being developed in this project:
   # A format to package the graphics and their properties (size, weight, cost, etc) into files. These files are called RCD files (Roller Coaster Data files).
   # A program that loads the RCD files, and allows them to be used in the game.
 
+== Building the program ==
 
+The BuildProgram page explains how to build the program and data files yourself from the source.
 
 == Other pages ==
 
   * CommitStyle The format used for the commit messages.
+  * ProgramContentAndBehaviour Pages about what the program contains, and how they interact with each other (once it is implemented).
