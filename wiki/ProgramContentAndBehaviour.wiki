@@ -7,6 +7,7 @@ This page serves as a table of contents to the wiki pages documenting what the p
 = Global design =
  * GameContent
  * [Interface]
+ * [Windows]
 
 = Park items =
  * ParkScenery
