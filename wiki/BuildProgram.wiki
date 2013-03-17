@@ -43,16 +43,6 @@ $ make    # Build it.
 
 This should create a 'freerct' program in the directory.
 
-== Building language files ==
-
-The language file contain the texts displayed by the program. Currently there is only one language file, but one day we will have more.
-You can build it in the 'src' directory as well
-
-<pre>
-$ make lang
-</pre>
-(which generates a ../rcd/english.lng file)
-
 == Config file ==
 
 Finally, you need a 'freerct.cfg' INI format file next to the 'freerct' program, containing the path to the font file you want to use. It looks like
