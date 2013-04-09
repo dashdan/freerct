@@ -297,29 +297,6 @@ SpriteBlock *ValueInformation::GetSprite(int line, const char *node)
 }
 
 /**
- * Find the value information named \a fld_name.
- * @param fld_name %Name of the field looking for.
- * @param vis Collected named values.
- * @param length Number of entries in \a vis.
- * @param line Line number of the node (for reporting errors).
- * @param node %Name of the node.
- * @return Reference in the \a vis array.
- */
-static ValueInformation &FindValueInformation(const char *fld_name, ValueInformation *vis, int length, int line, const char *node)
-{
-	while (length > 0) {
-		if (!vis->used && vis->name == fld_name) {
-			vis->used = true;
-			return *vis;
-		}
-		vis++;
-		length--;
-	}
-	fprintf(stderr, "Error at line %d: Cannot find a value for field \"%s\" in node \"%s\"\n", line, fld_name, node);
-	exit(1);
-}
-
-/**
  * Assign sub-nodes to the names of a 2D table.
  * @param bn Node to split in sub-nodes.
  * @param nt 2D name table.
@@ -348,66 +325,179 @@ void AssignNames(BlockNode *bn, NameTable *nt, ValueInformation *vis, int *lengt
 	}
 }
 
+/** Class for storing found named values. */
+class Values {
+public:
+	Values(const char *node_name, int node_line);
+	~Values();
+
+	const char *node_name; ///< Name of the node using the values (memory is not released).
+	int node_line;         ///< Line number of the node.
+
+	void PrepareNamedValues(NamedValueList *values, bool allow_named, bool allow_unnamed, const Symbol *symbols = NULL);
+	ValueInformation &FindValue(const char *fld_name);
+	void VerifyUsage();
+
+	int named_count;   ///< Number of found values with a name.
+	int unnamed_count; ///< Number of found value without a name.
+
+	ValueInformation *named_values;   ///< Information about each named value.
+	ValueInformation *unnamed_values; ///< Information about each unnamed value.
+
+private:
+	void CreateValues(int named_count, int unnamed_count);
+};
+
+/**
+ * Constructor of the values collection.
+ * @param node_name Name of the node using the values (caller owns the memory).
+ * @param node_line Line number of the node.
+ */
+Values::Values(const char *node_name, int node_line)
+{
+	this->node_name = node_name;
+	this->node_line = node_line;
+
+	this->named_count = 0;
+	this->unnamed_count = 0;
+	this->named_values = NULL;
+	this->unnamed_values = NULL;
+}
+
+/**
+ * Create space for the information of of the values.
+ * @param named_count Number of named values.
+ * @param unnamed_count Number of unnamed valued.
+ */
+void Values::CreateValues(int named_count, int unnamed_count)
+{
+	delete[] this->named_values;
+	delete[] this->unnamed_values;
+
+	this->named_count = named_count;
+	this->unnamed_count = unnamed_count;
+
+	this->named_values = (named_count > 0) ? new ValueInformation[named_count] : NULL;
+	this->unnamed_values = (unnamed_count > 0) ? new ValueInformation[unnamed_count] : NULL;
+}
+
+Values::~Values()
+{
+	delete[] this->named_values;
+	delete[] this->unnamed_values;
+}
+
 /**
  * Prepare the named values for access by field name.
  * @param values Named value to prepare.
- * @param length [out] Number of named values returned.
+ * @param allow_named Allow named values.
+ * @param allow_unnamed Allow unnamed values.
  * @param symbols Optional symbols that may be used in the values.
- * @return Collection named values available for use. Caller should release its memory.
  */
-ValueInformation *PrepareNamedValues(NamedValueList *values, int *length, const Symbol *symbols = NULL)
+void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool allow_unnamed, const Symbol *symbols)
 {
-	int total = 0;
+	/* Count number of named and unnamed values. */
+	int named_count = 0;
+	int unnamed_count = 0;
 	for (std::list<NamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
-		/* Check availability of names. */
-		if ((*iter)->name == NULL) {
-			fprintf(stderr, "Error at line %d: Value should have a name\n", (*iter)->group->GetLine());
-			exit(1);
+		if ((*iter)->name == NULL) { // Unnamed value.
+			if (!allow_unnamed) {
+				fprintf(stderr, "Error at line %d: Value should have a name\n", (*iter)->group->GetLine());
+				exit(1);
+			}
+			unnamed_count++;
+		} else {
+			if (!allow_named) {
+				fprintf(stderr, "Error at line %d: Value should not have a name\n", (*iter)->group->GetLine());
+				exit(1);
+			}
+			int count = (*iter)->name->GetNameCount();
+			named_count += count;
 		}
-		int count = (*iter)->name->GetNameCount();
-		total += count;
 	}
 
-	ValueInformation *vis = new ValueInformation[total];
-	*length = 0;
+	this->CreateValues(named_count, unnamed_count);
+
+	named_count = 0;
+	unnamed_count = 0;
 	for (std::list<NamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
-		/* Node group? */
-		NodeGroup *ng = (*iter)->group->CastToNodeGroup();
-		if (ng != NULL) {
-			BlockNode *bn = ConvertNodeGroup(ng);
-			SingleName *sn = dynamic_cast<SingleName *>((*iter)->name);
-			if (sn != NULL) {
-				vis[*length].expr_value = NULL;
-				vis[*length].node_value = bn;
-				vis[*length].name = std::string(sn->name);
-				vis[*length].line = sn->line;
-				vis[*length].used = false;
-				(*length)++;
+		if ((*iter)->name == NULL) { // Unnamed value.
+			NodeGroup *ng = (*iter)->group->CastToNodeGroup();
+			if (ng != NULL) {
+				this->unnamed_values[unnamed_count].expr_value = NULL;
+				this->unnamed_values[unnamed_count].node_value = ConvertNodeGroup(ng);
+				this->unnamed_values[unnamed_count].name = "???";
+				this->unnamed_values[unnamed_count].line = ng->GetLine();
+				this->unnamed_values[unnamed_count].used = false;
+				unnamed_count++;
 				continue;
 			}
-			NameTable *nt = dynamic_cast<NameTable *>((*iter)->name);
-			assert(nt != NULL);
-			AssignNames(bn, nt, vis, length);
+			ExpressionGroup *eg = (*iter)->group->CastToExpressionGroup();
+			assert(eg != NULL);
+			this->unnamed_values[unnamed_count].expr_value = eg->expr->Evaluate(symbols);
+			this->unnamed_values[unnamed_count].node_value = NULL;
+			this->unnamed_values[unnamed_count].name = "???";
+			this->unnamed_values[unnamed_count].line = ng->GetLine();
+			this->unnamed_values[unnamed_count].used = false;
+			unnamed_count++;
+			continue;
+		} else { // Named value.
+			NodeGroup *ng = (*iter)->group->CastToNodeGroup();
+			if (ng != NULL) {
+				BlockNode *bn = ConvertNodeGroup(ng);
+				SingleName *sn = dynamic_cast<SingleName *>((*iter)->name);
+				if (sn != NULL) {
+					this->named_values[named_count].expr_value = NULL;
+					this->named_values[named_count].node_value = bn;
+					this->named_values[named_count].name = std::string(sn->name);
+					this->named_values[named_count].line = sn->line;
+					this->named_values[named_count].used = false;
+					named_count++;
+					continue;
+				}
+				NameTable *nt = dynamic_cast<NameTable *>((*iter)->name);
+				assert(nt != NULL);
+				AssignNames(bn, nt, this->named_values, &named_count);
+				continue;
+			}
+
+			/* Expression group. */
+			ExpressionGroup *eg = (*iter)->group->CastToExpressionGroup();
+			assert(eg != NULL);
+			SingleName *sn = dynamic_cast<SingleName *>((*iter)->name);
+			if (sn == NULL) {
+				fprintf(stderr, "Error at line %d: Expression must have a single name\n", (*iter)->name->GetLine());
+				exit(1);
+			}
+			this->named_values[named_count].expr_value = eg->expr->Evaluate(symbols);
+			this->named_values[named_count].node_value = NULL;
+			this->named_values[named_count].name = std::string(sn->name);
+			this->named_values[named_count].line = sn->line;
+			this->named_values[named_count].used = false;
+			named_count++;
 			continue;
 		}
-
-		/* Expression group. */
-		ExpressionGroup *eg = (*iter)->group->CastToExpressionGroup();
-		assert(eg != NULL);
-		SingleName *sn = dynamic_cast<SingleName *>((*iter)->name);
-		if (sn == NULL) {
-			fprintf(stderr, "Error at line %d: Expression must have a single name\n", (*iter)->name->GetLine());
-			exit(1);
-		}
-		vis[*length].expr_value = eg->expr->Evaluate(symbols);
-		vis[*length].node_value = NULL;
-		vis[*length].name = std::string(sn->name);
-		vis[*length].line = sn->line;
-		vis[*length].used = false;
-		(*length)++;
 	}
-	assert(*length == total);
-	return vis;
+	assert(named_count == this->named_count);
+	assert(unnamed_count == this->unnamed_count);
+}
+
+/**
+ * Find the value information named \a fld_name.
+ * @param fld_name %Name of the field looking for.
+ * @return Reference in the \a vis array.
+ */
+ValueInformation &Values::FindValue(const char *fld_name)
+{
+	for (int i = 0; i < this->named_count; i++) {
+		ValueInformation &vi = this->named_values[i];
+		if (!vi.used && vi.name == fld_name) {
+			vi.used = true;
+			return vi;
+		}
+	}
+	fprintf(stderr, "Error at line %d: Cannot find a value for field \"%s\" in node \"%s\"\n", this->node_line, fld_name, this->node_name);
+	exit(1);
 }
 
 /**
@@ -416,14 +506,19 @@ ValueInformation *PrepareNamedValues(NamedValueList *values, int *length, const 
  * @param length Number of entries in \a vis.
  * @param node %Name of the node.
  */
-static void VerifyNamedValuesUse(ValueInformation *vis, int length, const char *node)
+void Values::VerifyUsage()
 {
-	while (length > 0) {
-		if (!vis->used) {
-			fprintf(stderr, "Warning at line %d: Named value \"%s\" was not used in node \"%s\"\n", vis->line, vis->name.c_str(), node);
+	for (int i = 0; i < this->unnamed_count; i++) {
+		const ValueInformation &vi = this->unnamed_values[i];
+		if (!vi.used) {
+			fprintf(stderr, "Warning at line %d: Unnamed value in node \"%s\" was not used\n", vi.line, this->node_name);
 		}
-		vis++;
-		length--;
+	}
+	for (int i = 0; i < this->named_count; i++) {
+		const ValueInformation &vi = this->named_values[i];
+		if (!vi.used) {
+			fprintf(stderr, "Warning at line %d: Named value \"%s\" was not used in node \"%s\"\n", vi.line, vi.name.c_str(), this->node_name);
+		}
 	}
 }
 
@@ -460,23 +555,21 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 	ExpandNoExpression(ng->exprs, ng->line, "TSEL");
 	TSELBlock *blk = new TSELBlock;
 
-	/* Prepare named values for access. */
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+	Values vals("TSEL", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
 
 	/* get the fields and their value. */
-	blk->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "TSEL").GetNumber(ng->line, "TSEL");
-	blk->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "TSEL").GetNumber(ng->line, "TSEL");
+	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "TSEL");
+	blk->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "TSEL");
 
 	char buffer[16];
 	buffer[0] = 'n';
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		strcpy(buffer + 1, _surface_sprite[i]);
-		blk->sprites[i] = FindValueInformation(buffer, vis, length, ng->line, "TSEL").GetSprite(ng->line, "TSEL");
+		blk->sprites[i] = vals.FindValue(buffer).GetSprite(ng->line, "TSEL");
 	}
 
-	VerifyNamedValuesUse(vis, length, "TSEL");
-	delete[] vis;
+	vals.VerifyUsage();
 	return blk;
 }
 
@@ -502,23 +595,21 @@ static SURFBlock *ConvertSURFNode(NodeGroup *ng)
 	ExpandNoExpression(ng->exprs, ng->line, "SURF");
 	SURFBlock *sb = new SURFBlock;
 
-	/* Prepare named values for access. */
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length, _surface_types);
+	Values vals("SURF", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false, _surface_types);
 
-	sb->surf_type  = FindValueInformation("surf_type",  vis, length, ng->line, "SURF").GetNumber(ng->line, "SURF");
-	sb->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "SURF").GetNumber(ng->line, "SURF");
-	sb->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "SURF").GetNumber(ng->line, "SURF");
+	sb->surf_type  = vals.FindValue("surf_type").GetNumber(ng->line, "SURF");
+	sb->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "SURF");
+	sb->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "SURF");
 
 	char buffer[16];
 	buffer[0] = 'n';
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		strcpy(buffer + 1, _surface_sprite[i]);
-		sb->sprites[i] = FindValueInformation(buffer, vis, length, ng->line, "SURF").GetSprite(ng->line, "SURF");
+		sb->sprites[i] = vals.FindValue(buffer).GetSprite(ng->line, "SURF");
 	}
 
-	VerifyNamedValuesUse(vis, length, "SURF");
-	delete[] vis;
+	vals.VerifyUsage();
 	return sb;
 }
 
@@ -551,20 +642,18 @@ static FUNDBlock *ConvertFUNDNode(NodeGroup *ng)
 	ExpandNoExpression(ng->exprs, ng->line, "FUND");
 	FUNDBlock *fb = new FUNDBlock;
 
-	/* Prepare named values for access. */
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length, _fund_symbols);
+	Values vals("FUND", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false, _fund_symbols);
 
-	fb->found_type = FindValueInformation("found_type", vis, length, ng->line, "FUND").GetNumber(ng->line, "FUND");
-	fb->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "FUND").GetNumber(ng->line, "FUND");
-	fb->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "FUND").GetNumber(ng->line, "FUND");
+	fb->found_type = vals.FindValue("found_type").GetNumber(ng->line, "FUND");
+	fb->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "FUND");
+	fb->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "FUND");
 
 	for (int i = 0; i < FOUNDATION_COUNT; i++) {
-		fb->sprites[i] = FindValueInformation(_foundation_sprite[i], vis, length, ng->line, "FUND").GetSprite(ng->line, "FUND");
+		fb->sprites[i] = vals.FindValue(_foundation_sprite[i]).GetSprite(ng->line, "FUND");
 	}
 
-	VerifyNamedValuesUse(vis, length, "FUND");
-	delete[] vis;
+	vals.VerifyUsage();
 	return fb;
 }
 
@@ -579,13 +668,12 @@ static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 
 	TCORBlock *blk = new TCORBlock;
 
-	/* Prepare named values for access. */
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+	Values vals("TCOR", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
 
 	/* get the fields and their value. */
-	blk->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "TCOR").GetNumber(ng->line, "TCOR");
-	blk->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "TCOR").GetNumber(ng->line, "TCOR");
+	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "TCOR");
+	blk->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "TCOR");
 
 	char buffer[16];
 	buffer[0] = 'n';
@@ -593,20 +681,19 @@ static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 		strcpy(buffer + 1, _surface_sprite[i]);
 
 		buffer[0] = 'n';
-		blk->north[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+		blk->north[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
 
 		buffer[0] = 'e';
-		blk->east[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+		blk->east[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
 
 		buffer[0] = 's';
-		blk->south[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+		blk->south[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
 
 		buffer[0] = 'w';
-		blk->west[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+		blk->west[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
 	}
 
-	VerifyNamedValuesUse(vis, length, "TCOR");
-	delete[] vis;
+	vals.VerifyUsage();
 	return blk;
 }
 
@@ -620,11 +707,10 @@ static PRSGBlock *ConvertPRSGNode(NodeGroup *ng)
 	ExpandNoExpression(ng->exprs, ng->line, "PRSG");
 	PRSGBlock *blk = new PRSGBlock;
 
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+	Values vals("PRSG", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
 
-	VerifyNamedValuesUse(vis, length, "TCOR");
-	delete[] vis;
+	vals.VerifyUsage();
 	return blk;
 }
 
@@ -640,21 +726,20 @@ static BlockNode *ConvertSheetNode(NodeGroup *ng)
 
 	SheetBlock *sb = new SheetBlock(ng->line);
 
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+	Values vals("sheet", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
 
-	sb->file     = FindValueInformation("file",     vis, length, ng->line, "sheet").GetString(ng->line, "sheet");
-	sb->x_base   = FindValueInformation("x_base",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->y_base   = FindValueInformation("y_base",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->x_step   = FindValueInformation("x_step",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->y_step   = FindValueInformation("y_step",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->x_offset = FindValueInformation("x_offset", vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->y_offset = FindValueInformation("y_offset", vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->width    = FindValueInformation("width",    vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
-	sb->height   = FindValueInformation("height",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->file     = vals.FindValue("file").GetString(ng->line, "sheet");
+	sb->x_base   = vals.FindValue("x_base").GetNumber(ng->line, "sheet");
+	sb->y_base   = vals.FindValue("y_base").GetNumber(ng->line, "sheet");
+	sb->x_step   = vals.FindValue("x_step").GetNumber(ng->line, "sheet");
+	sb->y_step   = vals.FindValue("y_step").GetNumber(ng->line, "sheet");
+	sb->x_offset = vals.FindValue("x_offset").GetNumber(ng->line, "sheet");
+	sb->y_offset = vals.FindValue("y_offset").GetNumber(ng->line, "sheet");
+	sb->width    = vals.FindValue("width").GetNumber(ng->line, "sheet");
+	sb->height   = vals.FindValue("height").GetNumber(ng->line, "sheet");
 
-	VerifyNamedValuesUse(vis, length, "sheet");
-	delete[] vis;
+	vals.VerifyUsage();
 	return sb;
 }
 
@@ -667,19 +752,18 @@ static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
 {
 	ExpandNoExpression(ng->exprs, ng->line, "sprite");
 
-	int length = 0;
-	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+	Values vals("sprite", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
 
-	std::string file = FindValueInformation("file",     vis, length, ng->line, "sprite").GetString(ng->line, "sprite");
-	int xbase        = FindValueInformation("x_base",   vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
-	int ybase        = FindValueInformation("y_base",   vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
-	int width        = FindValueInformation("width",    vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
-	int height       = FindValueInformation("height",   vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
-	int xoffset      = FindValueInformation("x_offset", vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
-	int yoffset      = FindValueInformation("y_offset", vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+	std::string file = vals.FindValue("file").GetString(ng->line, "sprite");
+	int xbase        = vals.FindValue("x_base").GetNumber(ng->line, "sprite");
+	int ybase        = vals.FindValue("y_base").GetNumber(ng->line, "sprite");
+	int width        = vals.FindValue("width").GetNumber(ng->line, "sprite");
+	int height       = vals.FindValue("height").GetNumber(ng->line, "sprite");
+	int xoffset      = vals.FindValue("x_offset").GetNumber(ng->line, "sprite");
+	int yoffset      = vals.FindValue("y_offset").GetNumber(ng->line, "sprite");
 
-	VerifyNamedValuesUse(vis, length, "sprite");
-	delete[] vis;
+	vals.VerifyUsage();
 
 	SpriteBlock *sb = new SpriteBlock;
 	Image img;
