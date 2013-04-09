@@ -254,13 +254,13 @@ const char *SpriteImage::CopySprite(Image *img, int xoffset, int yoffset, int xp
 		int length = 0;
 		int last_stored = 0; // Upto this position (exclusive), the row was counted.
 		for (int x = 0; x < xsize; x++) {
-			uint8 col = img->GetPixel(xoffset + x, yoffset + y);
+			uint8 col = img->GetPixel(xpos + x, ypos + y);
 			if (col == TRANSPARENT) continue;
 
 			int start = x;
 			x++;
 			while (x < xsize) {
-				uint8 col = img->GetPixel(xoffset + x, yoffset + y);
+				uint8 col = img->GetPixel(xpos + x, ypos + y);
 				if (col == TRANSPARENT) break;
 				x++;
 			}
@@ -297,13 +297,13 @@ const char *SpriteImage::CopySprite(Image *img, int xoffset, int yoffset, int xp
 		uint8 *last_header = NULL;
 		int last_stored = 0; // Upto this position (exclusive), the row was counted.
 		for (int x = 0; x < xsize; x++) {
-			uint8 col = img->GetPixel(xoffset + x, yoffset + y);
+			uint8 col = img->GetPixel(xpos + x, ypos + y);
 			if (col == TRANSPARENT) continue;
 
 			int start = x;
 			x++;
 			while (x < xsize) {
-				uint8 col = img->GetPixel(xoffset + x, yoffset + y);
+				uint8 col = img->GetPixel(xpos + x, ypos + y);
 				if (col == TRANSPARENT) break;
 				x++;
 			}
@@ -317,7 +317,7 @@ const char *SpriteImage::CopySprite(Image *img, int xoffset, int yoffset, int xp
 				*ptr++ = start - last_stored;
 				*ptr++ = 255;
 				for (int i = 0; i < 255; i++) {
-					*ptr++ = img->GetPixel(start, y);
+					*ptr++ = img->GetPixel(xpos + start, ypos + y);
 					start++;
 				}
 				last_stored = start;
@@ -326,7 +326,7 @@ const char *SpriteImage::CopySprite(Image *img, int xoffset, int yoffset, int xp
 			*ptr++ = start - last_stored;
 			*ptr++ = x - start;
 			while (x > start) {
-				*ptr++ = img->GetPixel(start, y);
+				*ptr++ = img->GetPixel(xpos + start, ypos + y);
 				start++;
 			}
 			last_stored = x;
