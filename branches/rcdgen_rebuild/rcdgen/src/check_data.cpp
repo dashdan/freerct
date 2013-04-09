@@ -336,6 +336,9 @@ public:
 
 	void PrepareNamedValues(NamedValueList *values, bool allow_named, bool allow_unnamed, const Symbol *symbols = NULL);
 	ValueInformation &FindValue(const char *fld_name);
+	long long GetNumber(const char *fld_name, const Symbol *symbols = NULL);
+	std::string GetString(const char *fld_name);
+	SpriteBlock *GetSprite(const char *fld_name);
 	void VerifyUsage();
 
 	int named_count;   ///< Number of found values with a name.
@@ -500,6 +503,33 @@ ValueInformation &Values::FindValue(const char *fld_name)
 	exit(1);
 }
 
+/**
+ * Get a numeric value from the named expression with the provided name.
+ * @return The numeric value of the expression.
+ */
+long long Values::GetNumber(const char *fld_name, const Symbol *symbols)
+{
+	return FindValue(fld_name).GetNumber(this->node_line, this->node_name);
+}
+
+/**
+ * Get a string value from the named expression with the provided name.
+ * @return The value of the string.
+ */
+std::string Values::GetString(const char *fld_name)
+{
+	return FindValue(fld_name).GetString(this->node_line, this->node_name);
+}
+
+/**
+ * Get a sprite (#SpriteBlock) from the named value with the provided name.
+ * @return The sprite.
+ */
+SpriteBlock *Values::GetSprite(const char *fld_name)
+{
+	return FindValue(fld_name).GetSprite(this->node_line, this->node_name);
+}
+
 /** Verify whether all named values were used in a node. */
 void Values::VerifyUsage()
 {
@@ -554,14 +584,14 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	/* get the fields and their value. */
-	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "TSEL");
-	blk->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "TSEL");
+	blk->tile_width = vals.GetNumber("tile_width");
+	blk->z_height   = vals.GetNumber("z_height");
 
 	char buffer[16];
 	buffer[0] = 'n';
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		strcpy(buffer + 1, _surface_sprite[i]);
-		blk->sprites[i] = vals.FindValue(buffer).GetSprite(ng->line, "TSEL");
+		blk->sprites[i] = vals.GetSprite(buffer);
 	}
 
 	vals.VerifyUsage();
@@ -593,15 +623,15 @@ static SURFBlock *ConvertSURFNode(NodeGroup *ng)
 	Values vals("SURF", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false, _surface_types);
 
-	sb->surf_type  = vals.FindValue("surf_type").GetNumber(ng->line, "SURF");
-	sb->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "SURF");
-	sb->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "SURF");
+	sb->surf_type  = vals.GetNumber("surf_type");
+	sb->tile_width = vals.GetNumber("tile_width");
+	sb->z_height   = vals.GetNumber("z_height");
 
 	char buffer[16];
 	buffer[0] = 'n';
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		strcpy(buffer + 1, _surface_sprite[i]);
-		sb->sprites[i] = vals.FindValue(buffer).GetSprite(ng->line, "SURF");
+		sb->sprites[i] = vals.GetSprite(buffer);
 	}
 
 	vals.VerifyUsage();
@@ -640,12 +670,12 @@ static FUNDBlock *ConvertFUNDNode(NodeGroup *ng)
 	Values vals("FUND", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false, _fund_symbols);
 
-	fb->found_type = vals.FindValue("found_type").GetNumber(ng->line, "FUND");
-	fb->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "FUND");
-	fb->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "FUND");
+	fb->found_type = vals.GetNumber("found_type");
+	fb->tile_width = vals.GetNumber("tile_width");
+	fb->z_height   = vals.GetNumber("z_height");
 
 	for (int i = 0; i < FOUNDATION_COUNT; i++) {
-		fb->sprites[i] = vals.FindValue(_foundation_sprite[i]).GetSprite(ng->line, "FUND");
+		fb->sprites[i] = vals.GetSprite(_foundation_sprite[i]);
 	}
 
 	vals.VerifyUsage();
@@ -726,12 +756,12 @@ static PATHBlock *ConvertPATHNode(NodeGroup *ng)
 	Values vals("PATH", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false, _path_symbols);
 
-	blk->path_type = vals.FindValue("path_type").GetNumber(ng->line, "PATH");
-	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "PATH");
-	blk->z_height = vals.FindValue("z_height").GetNumber(ng->line, "PATH");
+	blk->path_type = vals.GetNumber("path_type");
+	blk->tile_width = vals.GetNumber("tile_width");
+	blk->z_height = vals.GetNumber("z_height");
 
 	for (int i = 0; i < PTS_COUNT; i++) {
-		blk->sprites[i] = vals.FindValue(_path_sprites[i]).GetSprite(ng->line, "PATH");
+		blk->sprites[i] = vals.GetSprite(_path_sprites[i]);
 	}
 
 	vals.VerifyUsage();
@@ -775,12 +805,12 @@ static PLATBlock *ConvertPLATNode(NodeGroup *ng)
 	Values vals("PLAT", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false, _platform_symbols);
 
-	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "PLAT");
-	blk->z_height = vals.FindValue("z_height").GetNumber(ng->line, "PLAT");
-	blk->platform_type = vals.FindValue("platform_type").GetNumber(ng->line, "PLAT");
+	blk->tile_width = vals.GetNumber("tile_width");
+	blk->z_height = vals.GetNumber("z_height");
+	blk->platform_type = vals.GetNumber("platform_type");
 
 	for (int i = 0; i < PLA_COUNT; i++) {
-		blk->sprites[i] = vals.FindValue(_platform_sprites[i]).GetSprite(ng->line, "PLAT");
+		blk->sprites[i] = vals.GetSprite(_platform_sprites[i]);
 	}
 
 	vals.VerifyUsage();
@@ -834,12 +864,12 @@ static SUPPBlock *ConvertSUPPNode(NodeGroup *ng)
 	Values vals("SUPP", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false, _support_symbols);
 
-	blk->support_type = vals.FindValue("support_type").GetNumber(ng->line, "SUPP");
-	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "SUPP");
-	blk->z_height = vals.FindValue("z_height").GetNumber(ng->line, "SUPP");
+	blk->support_type = vals.GetNumber("support_type");
+	blk->tile_width = vals.GetNumber("tile_width");
+	blk->z_height = vals.GetNumber("z_height");
 
 	for (int i = 0; i < SPP_COUNT; i++) {
-		blk->sprites[i] = vals.FindValue(_support_sprites[i]).GetSprite(ng->line, "SUPP");
+		blk->sprites[i] = vals.GetSprite(_support_sprites[i]);
 	}
 
 	vals.VerifyUsage();
@@ -860,8 +890,8 @@ static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	/* get the fields and their value. */
-	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "TCOR");
-	blk->z_height   = vals.FindValue("z_height").GetNumber(ng->line, "TCOR");
+	blk->tile_width = vals.GetNumber("tile_width");
+	blk->z_height   = vals.GetNumber("z_height");
 
 	char buffer[16];
 	buffer[0] = 'n';
@@ -869,16 +899,16 @@ static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 		strcpy(buffer + 1, _surface_sprite[i]);
 
 		buffer[0] = 'n';
-		blk->north[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
+		blk->north[i] = vals.GetSprite(buffer);
 
 		buffer[0] = 'e';
-		blk->east[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
+		blk->east[i] = vals.GetSprite(buffer);
 
 		buffer[0] = 's';
-		blk->south[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
+		blk->south[i] = vals.GetSprite(buffer);
 
 		buffer[0] = 'w';
-		blk->west[i] = vals.FindValue(buffer).GetSprite(ng->line, "TCOR");
+		blk->west[i] = vals.GetSprite(buffer);
 	}
 
 	vals.VerifyUsage();
@@ -942,8 +972,8 @@ static ANIMBlock *ConvertANIMNode(NodeGroup *ng)
 	Values vals("ANIM", ng->line);
 	vals.PrepareNamedValues(ng->values, true, true, _anim_symbols);
 
-	blk->person_type = vals.FindValue("person_type").GetNumber(ng->line, "ANIM");
-	blk->anim_type = vals.FindValue("anim_type").GetNumber(ng->line, "ANIM");
+	blk->person_type = vals.GetNumber("person_type");
+	blk->anim_type = vals.GetNumber("anim_type");
 
 	for (int i = 0; i < vals.unnamed_count; i++) {
 		ValueInformation &vi = vals.unnamed_values[i];
@@ -978,9 +1008,9 @@ static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
 	Values vals("ANSP", ng->line);
 	vals.PrepareNamedValues(ng->values, true, true, _anim_symbols);
 
-	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "ANSP");
-	blk->person_type = vals.FindValue("person_type").GetNumber(ng->line, "ANSP");
-	blk->anim_type = vals.FindValue("anim_type").GetNumber(ng->line, "ANSP");
+	blk->tile_width  = vals.GetNumber("tile_width");
+	blk->person_type = vals.GetNumber("person_type");
+	blk->anim_type   = vals.GetNumber("anim_type");
 
 	for (int i = 0; i < vals.unnamed_count; i++) {
 		ValueInformation &vi = vals.unnamed_values[i];
@@ -1017,15 +1047,15 @@ static BlockNode *ConvertSheetNode(NodeGroup *ng)
 	Values vals("sheet", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false);
 
-	sb->file     = vals.FindValue("file").GetString(ng->line, "sheet");
-	sb->x_base   = vals.FindValue("x_base").GetNumber(ng->line, "sheet");
-	sb->y_base   = vals.FindValue("y_base").GetNumber(ng->line, "sheet");
-	sb->x_step   = vals.FindValue("x_step").GetNumber(ng->line, "sheet");
-	sb->y_step   = vals.FindValue("y_step").GetNumber(ng->line, "sheet");
-	sb->x_offset = vals.FindValue("x_offset").GetNumber(ng->line, "sheet");
-	sb->y_offset = vals.FindValue("y_offset").GetNumber(ng->line, "sheet");
-	sb->width    = vals.FindValue("width").GetNumber(ng->line, "sheet");
-	sb->height   = vals.FindValue("height").GetNumber(ng->line, "sheet");
+	sb->file     = vals.GetString("file");
+	sb->x_base   = vals.GetNumber("x_base");
+	sb->y_base   = vals.GetNumber("y_base");
+	sb->x_step   = vals.GetNumber("x_step");
+	sb->y_step   = vals.GetNumber("y_step");
+	sb->x_offset = vals.GetNumber("x_offset");
+	sb->y_offset = vals.GetNumber("y_offset");
+	sb->width    = vals.GetNumber("width");
+	sb->height   = vals.GetNumber("height");
 
 	vals.VerifyUsage();
 	return sb;
@@ -1043,13 +1073,13 @@ static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
 	Values vals("sprite", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false);
 
-	std::string file = vals.FindValue("file").GetString(ng->line, "sprite");
-	int xbase        = vals.FindValue("x_base").GetNumber(ng->line, "sprite");
-	int ybase        = vals.FindValue("y_base").GetNumber(ng->line, "sprite");
-	int width        = vals.FindValue("width").GetNumber(ng->line, "sprite");
-	int height       = vals.FindValue("height").GetNumber(ng->line, "sprite");
-	int xoffset      = vals.FindValue("x_offset").GetNumber(ng->line, "sprite");
-	int yoffset      = vals.FindValue("y_offset").GetNumber(ng->line, "sprite");
+	std::string file = vals.GetString("file");
+	int xbase        = vals.GetNumber("x_base");
+	int ybase        = vals.GetNumber("y_base");
+	int width        = vals.GetNumber("width");
+	int height       = vals.GetNumber("height");
+	int xoffset      = vals.GetNumber("x_offset");
+	int yoffset      = vals.GetNumber("y_offset");
 
 	vals.VerifyUsage();
 
@@ -1126,7 +1156,7 @@ static PersonGraphics *ConvertPersonGraphicsNode(NodeGroup *ng)
 	Values vals("person_graphics", ng->line);
 	vals.PrepareNamedValues(ng->values, true, true, _person_graphics_symbols);
 
-	pg->person_type = vals.FindValue("person_type").GetNumber(ng->line, "person_graphics");
+	pg->person_type = vals.GetNumber("person_type");
 
 	for (int i = 0; i < vals.unnamed_count; i++) {
 		ValueInformation &vi = vals.unnamed_values[i];
@@ -1160,8 +1190,8 @@ static Recolouring *ConvertRecolourNode(NodeGroup *ng)
 	Values vals("recolour", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false, _recolour_symbols);
 
-	rc->orig = vals.FindValue("original").GetNumber(ng->line, "recolour");
-	rc->replace = vals.FindValue("replace").GetNumber(ng->line, "recolour");
+	rc->orig = vals.GetNumber("original");
+	rc->replace = vals.GetNumber("replace");
 
 	vals.VerifyUsage();
 	return rc;
@@ -1180,9 +1210,9 @@ static FrameData *ConvertFrameDataNode(NodeGroup *ng)
 	Values vals("frame_data", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false);
 
-	fd->duration = vals.FindValue("duration").GetNumber(ng->line, "frame_data");
-	fd->change_x = vals.FindValue("change_x").GetNumber(ng->line, "frame_data");
-	fd->change_y = vals.FindValue("change_y").GetNumber(ng->line, "frame_data");
+	fd->duration = vals.GetNumber("duration");
+	fd->change_x = vals.GetNumber("change_x");
+	fd->change_y = vals.GetNumber("change_y");
 
 	vals.VerifyUsage();
 	return fd;
