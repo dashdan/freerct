@@ -31,7 +31,7 @@ file("borderhighlight_8bpp64.rcd") {
 	}
 }
 
-file("cornerhighlight8bpp64.rcd") {
+file("cornerhighlight_8bpp64.rcd") {
 	// Tile corner sprites.
 	TCOR {
 		tile_width: 64;
