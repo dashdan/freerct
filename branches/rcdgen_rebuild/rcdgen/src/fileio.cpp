@@ -25,6 +25,78 @@ FileBlock::~FileBlock()
 }
 
 /**
+ * Setup storing of data in the file block.
+ * After setup, use #SaveUInt8, #SaveUInt16, #SaveUInt32, and #SaveBytes to store the data in the block.
+ * Afterwards, use #CheckEndSave to verify the amount of actually written data matches with the expected length.
+ * @param blk_name Name of the block (a 4 character text string).
+ * @param version Version of the block.
+ * @param data_length Length of the data part (that is, exlcusding the header).
+ */
+void FileBlock::StartSave(const char *blk_name, int version, int data_length)
+{
+	this->length = data_length + 12; // Add length of the header.
+	free(this->data);
+	this->data = (uint8 *)malloc(this->length);
+	this->save_index = 0;
+
+	assert(strlen(blk_name) == 4);
+	this->SaveBytes((uint8 *)blk_name, 4);
+	this->SaveUInt32(version);
+	this->SaveUInt32(data_length);
+}
+
+/**
+ * Save a 8 bit unsigned value into the file block.
+ * @param d Value to write.
+ */
+void FileBlock::SaveUInt8(uint8 d)
+{
+	assert(this->save_index < this->length);
+	this->data[this->save_index] = d;
+	this->save_index++;
+}
+
+/**
+ * Save a 16 bit unsigned value into the file block.
+ * @param d Value to write.
+ */
+void FileBlock::SaveUInt16(uint16 d)
+{
+	this->SaveUInt8(d);
+	this->SaveUInt8(d >> 8);
+}
+
+/**
+ * Save a 32 bit unsigned value into the file block.
+ * @param d Value to write.
+ */
+void FileBlock::SaveUInt32(uint32 d)
+{
+	this->SaveUInt16(d);
+	this->SaveUInt16(d >> 16);
+}
+
+/**
+ * Save a sequence of bytes in the file block.
+ * @param data Start address of the data.
+ * @param size Length of the data.
+ */
+void FileBlock::SaveBytes(uint8 *data, int size)
+{
+	while (size > 0) {
+		this->SaveUInt8(*data);
+		data++;
+		size--;
+	}
+}
+
+/** Check that all data has been written. */
+void FileBlock::CheckEndSave()
+{
+	assert(this->save_index == this->length);
+}
+
+/**
  * Write the file block to the output.
  * @param fp File handle to write to.
  */

@@ -10,18 +10,11 @@
 /** @file main.cpp Main program. */
 
 #include "stdafx.h"
+#include "scanner_funcs.h"
 #include "image.h"
 
 int main()
 {
-	Image img;
-
-	const char *result = img.LoadFile("../../sprites_src/tracks/track/track1x1basic_template8bpp64.png");
-	if (result != NULL) {
-		fprintf(stderr, "ERROR: %s\n", result);
-		exit(1);
-	}
-
-	printf("Image is %d x %d\n", img.GetWidth(), img.GetHeight());
+	yyparse();
 	exit(0);
 }

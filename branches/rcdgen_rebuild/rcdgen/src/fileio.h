@@ -20,10 +20,18 @@ public:
 	FileBlock();
 	~FileBlock();
 
+	void StartSave(const char *blk_name, int version, int data_length);
+	void SaveUInt8(uint8 d);
+	void SaveUInt16(uint16 d);
+	void SaveUInt32(uint32 d);
+	void SaveBytes(uint8 *data, int size);
+	void CheckEndSave();
+
 	void Write(FILE *fp);
 
-	uint8 *data; ///< Data of the block.
-	int length;  ///< Length of the block.
+	uint8 *data;    ///< Data of the block.
+	int length;     ///< Length of the block.
+	int save_index; ///< Index in #data to write content into the file block.
 };
 
 bool operator==(const FileBlock &fb1, const FileBlock &fb2);

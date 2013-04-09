@@ -12,9 +12,11 @@ INCLUDES=
 LIBS=-lpng
 CXXFLAGS=-Wall -g
 CXX=g++
+BISON=bison
+FLEX=flex
 DEPEND=deps
 TARGET=rcdgen
-CXXFILES=image.cpp fileio.cpp main.cpp
+CXXFILES=ast.cpp image.cpp fileio.cpp main.cpp parser.cpp scanner.cpp scanner_funcs.cpp
 OBJFILES=$(CXXFILES:.cpp=.o)
 
 $(TARGET): $(DEPEND) $(OBJFILES)
@@ -33,6 +35,11 @@ clean:
 	do if test -f $$i; then rm $$i; fi;\
 	done
 
+tokens.h parser.cpp: parser.y
+	$(BISON) --defines=tokens.h --output=parser.cpp parser.y
+
+scanner.cpp scanner.h: scanner.l
+	$(FLEX) --outfile=scanner.cpp scanner.l
 
 
 ifndef NODEPS
