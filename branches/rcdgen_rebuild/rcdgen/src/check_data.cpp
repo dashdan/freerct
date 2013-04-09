@@ -23,7 +23,7 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng);
  * @param exprs %Expression list containing parameters.
  * @param out [out] Output array for storing \a expected expressions from the list.
  * @param line Line number of the node (for reporting errors).
- * @param node Name of the node being checked and expanded.
+ * @param node %Name of the node being checked and expanded.
  */
 static void ExpandExpressions(ExpressionList *exprs, Expression *out[], size_t expected, int line, const char *node)
 {
@@ -43,10 +43,24 @@ static void ExpandExpressions(ExpressionList *exprs, Expression *out[], size_t e
 }
 
 /**
+ * Check that there are no expressions provided in \a exprs. Give an error otherwise.
+ * @param exprs %Expression list containing parameters.
+ * @param line Line number of the node (for reporting errors).
+ * @param node %Name of the node being checked and expanded.
+ */
+static void ExpandNoExpression(ExpressionList *exprs, int line, const char *node)
+{
+	if (exprs == NULL || exprs->exprs.size() == 0) return;
+
+	fprintf(stderr, "Error at line %d: No arguments expected for node \"%s\" (found %lu)\n", line, node, exprs->exprs.size());
+	exit(1);
+}
+
+/**
  * Extract a string from the given expression.
  * @param expr %Expression to evaluate.
  * @param index Parameter number (0-based, for error reporting).
- * @param node Name of the node.
+ * @param node %Name of the node.
  * @return Value of the string (caller should release the memory after use).
  */
 static char *GetString(Expression *expr, int index, const char *node)
@@ -58,12 +72,12 @@ static char *GetString(Expression *expr, int index, const char *node)
 	/* General case, compute its value. */
 	Expression *expr2 = expr->Evaluate();
 	sl = dynamic_cast<StringLiteral *>(expr2);
-	char *result = (sl != NULL) ? sl->CopyText() : NULL;
-	delete expr2;
-	if (result == NULL) {
+	if (sl == NULL) {
 		fprintf(stderr, "Error at line %d: Expression parameter %d of node %s is not a string", expr->line, index + 1, node);
 		exit(1);
 	}
+	char *result = sl->CopyText();
+	delete expr2;
 	return result;
 }
 
@@ -71,7 +85,7 @@ static char *GetString(Expression *expr, int index, const char *node)
  * Extract a number from the given expression.
  * @param expr %Expression to evaluate.
  * @param index Parameter number (0-based, for error reporting).
- * @param node Name of the node.
+ * @param node %Name of the node.
  * @return Value of the number.
  */
 static long long GetNumber(Expression *expr, int index, const char *node)
@@ -83,12 +97,12 @@ static long long GetNumber(Expression *expr, int index, const char *node)
 	/* General case, compute its value. */
 	Expression *expr2 = expr->Evaluate();
 	nl = dynamic_cast<NumberLiteral *>(expr2);
-	long long value = nl->value;
-	delete expr2;
 	if (nl == NULL) {
 		fprintf(stderr, "Error at line %d: Expression parameter %d of node %s is not a number", expr->line, index + 1, node);
 		exit(1);
 	}
+	long long value = nl->value;
+	delete expr2;
 	return value;
 }
 
@@ -133,9 +147,12 @@ public:
 	ValueInformation &operator=(const ValueInformation &vi);
 	~ValueInformation();
 
+	long long GetNumber(int line, const char *node);
+	std::string GetString(int line, const char *node);
+
 	Expression *expr_value; ///< %Expression attached to it (if any).
 	BlockNode *node_value;  ///< Node attached to it (if any).
-	std::string name;       ///< Name of the value.
+	std::string name;       ///< %Name of the value.
 	int line;               ///< Line number of the name.
 	bool used;              ///< Is the value used?
 };
@@ -152,7 +169,7 @@ ValueInformation::ValueInformation()
 
 /**
  * Constructor of the class.
- * @param name Name of the value.
+ * @param name %Name of the value.
  * @param line Line number of the name.
  */
 ValueInformation::ValueInformation(const std::string &name, int line)
@@ -206,6 +223,79 @@ ValueInformation::~ValueInformation()
 {
 	delete this->expr_value;
 	delete this->node_value;
+}
+
+/**
+ * Extract a number from the given expression.
+ * @param line Line number of the node (for reporting errors).
+ * @param node %Name of the node.
+ * @return Numeric value.
+ */
+long long ValueInformation::GetNumber(int line, const char *node)
+{
+	if (this->expr_value == NULL) {
+fail:
+		fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a numeric value\n", line, this->name.c_str(), node);
+		exit(1);
+	}
+	NumberLiteral *nl = dynamic_cast<NumberLiteral *>(this->expr_value); // Simple common case.
+	if (nl != NULL) return nl->value;
+
+	Expression *expr2 = this->expr_value->Evaluate(); // Generic case, evaluate the expression.
+	nl = dynamic_cast<NumberLiteral *>(expr2);
+	if (nl == NULL) goto fail;
+
+	long long value = nl->value;
+	delete expr2;
+	return value;
+}
+
+/**
+ * Extract a string from the given expression.
+ * @param line Line number of the node (for reporting errors).
+ * @param node %Name of the node.
+ * @return String value, should be freed by the user.
+ */
+std::string ValueInformation::GetString(int line, const char *node)
+{
+	if (this->expr_value == NULL) {
+fail:
+		fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a string value\n", line, this->name.c_str(), node);
+		exit(1);
+	}
+	StringLiteral *sl = dynamic_cast<StringLiteral *>(this->expr_value); // Simple common case.
+	if (sl != NULL) return std::string(sl->text);
+
+	Expression *expr2 = this->expr_value->Evaluate(); // Generic case
+	sl = dynamic_cast<StringLiteral *>(expr2);
+	if (sl == NULL) goto fail;
+
+	std::string result = std::string(sl->text);
+	delete expr2;
+	return result;
+}
+
+/**
+ * Find the value information named \a fld_name.
+ * @param fld_name %Name of the field looking for.
+ * @param vis Collected named values.
+ * @param length Number of entries in \a vis.
+ * @param line Line number of the node (for reporting errors).
+ * @param node %Name of the node.
+ * @return Reference in the \a vis array.
+ */
+static ValueInformation &FindValueInformation(const char *fld_name, ValueInformation *vis, int length, int line, const char *node)
+{
+	while (length > 0) {
+		if (!vis->used && vis->name == fld_name) {
+			vis->used = true;
+			return *vis;
+		}
+		vis++;
+		length--;
+	}
+	fprintf(stderr, "Error at line %d: Cannot find a value for field \"%s\" in node \"%s\"\n", line, fld_name, node);
+	exit(1);
 }
 
 /**
@@ -299,6 +389,23 @@ ValueInformation *PrepareNamedValues(NamedValueList *values, int *length)
 }
 
 /**
+ * Verify whether all named values were used in a node.
+ * @param vis Collected named values.
+ * @param length Number of entries in \a vis.
+ * @param node %Name of the node.
+ */
+static void VerifyNamedValuesUse(ValueInformation *vis, int length, const char *node)
+{
+	while (length > 0) {
+		if (!vis->used) {
+			fprintf(stderr, "Warning at line %d: Named value \"%s\" was not used in node \"%s\"\n", vis->line, vis->name.c_str(), node);
+		}
+		vis++;
+		length--;
+	}
+}
+
+/**
  * Convert a node group to a TSEL game block.
  * @param ng Generic tree of nodes to convert.
  * @return The created TSEL node.
@@ -324,13 +431,43 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 }
 
 /**
+ * Convert a node group to a sprite-sheet block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created sprite-sheet node.
+ */
+static BlockNode *ConvertSheetNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "sheet");
+
+	SheetBlock *sb = new SheetBlock;
+
+	int length = 0;
+	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+
+	sb->file     = FindValueInformation("file",     vis, length, ng->line, "sheet").GetString(ng->line, "sheet");
+	sb->x_base   = FindValueInformation("x_base",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->y_base   = FindValueInformation("y_base",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->x_step   = FindValueInformation("x_step",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->y_step   = FindValueInformation("y_step",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->x_offset = FindValueInformation("x_offset", vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->y_offset = FindValueInformation("y_offset", vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->width    = FindValueInformation("width",    vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+	sb->height   = FindValueInformation("height",   vis, length, ng->line, "sheet").GetNumber(ng->line, "sheet");
+
+	VerifyNamedValuesUse(vis, length, "sheet");
+	delete[] vis;
+	return sb;
+}
+
+/**
  * Convert a node group.
  * @param ng Node group to convert.
  * @return The converted node.
  */
 static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 {
-	if (strcmp(ng->name, "file") == 0) return ConvertFileNode(ng);
+	if (strcmp(ng->name, "file")  == 0) return ConvertFileNode(ng);
+	if (strcmp(ng->name, "sheet") == 0) return ConvertSheetNode(ng);
 
 	/* game blocks. */
 	if (strcmp(ng->name, "TSEL") == 0) return ConvertTSELNode(ng);

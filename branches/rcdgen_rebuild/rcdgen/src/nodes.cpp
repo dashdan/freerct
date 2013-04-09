@@ -76,6 +76,14 @@ SpriteBlock::~SpriteBlock()
 {
 }
 
+SheetBlock::SheetBlock()
+{
+}
+
+SheetBlock::~SheetBlock()
+{
+}
+
 /**
  * Constructor of a TSEL block.
  * @param version Version number of the block.

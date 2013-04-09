@@ -12,6 +12,7 @@
 #ifndef NODES_H
 #define NODES_H
 
+#include <string>
 #include <list>
 
 /** Base class for all nodes. */
@@ -72,6 +73,22 @@ class SpriteBlock : public BlockNode {
 public:
 	SpriteBlock();
 	/* virtual */ ~SpriteBlock();
+};
+
+class SheetBlock : public BlockNode {
+public:
+	SheetBlock();
+	/* virtual */ ~SheetBlock();
+
+	std::string file; ///< Name of the file containing the sprite sheet.
+	int x_base;       ///< Horizontal base offset in the sheet.
+	int y_base;       ///< Vertical base offset in the sheet.
+	int x_step;       ///< Column step size.
+	int y_step;       ///< Row step size.
+	int x_offset;     ///< Sprite offset (from the origin to the left edge of the sprite).
+	int y_offset;     ///< Sprite offset (from the origin to the top edge of the sprite).
+	int width;        ///< Width of a sprite.
+	int height;       ///< Height of a sprite.
 };
 
 /** A 'TSEL' block. */
