@@ -23,6 +23,10 @@ ExpressionList::~ExpressionList()
 	}
 }
 
+/**
+ * Constructor of the base expression class.
+ * @param line Line number of the expression node.
+ */
 Expression::Expression(int line)
 {
 	this->line = line;
@@ -205,6 +209,11 @@ IdentifierLine::IdentifierLine(const IdentifierLine &il)
 	memcpy(this->name, il.name, length + 1);
 }
 
+/**
+ * Assignment operator of an identifier line.
+ * @param il Identifier line being copied.
+ * @return The identifier line copied to.
+ */
 IdentifierLine &IdentifierLine::operator=(const IdentifierLine &il)
 {
 	if (&il == this) return *this;

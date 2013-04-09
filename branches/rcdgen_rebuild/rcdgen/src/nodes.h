@@ -75,6 +75,7 @@ public:
 	/* virtual */ ~SpriteBlock();
 };
 
+/** Block containing a sprite sheet. */
 class SheetBlock : public BlockNode {
 public:
 	SheetBlock();

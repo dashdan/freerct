@@ -39,11 +39,11 @@ union YyStruct {
 	struct {
 		int line;        ///< Line number of the token.
 		long long value; ///< Number stored.
-	} number;
+	} number; ///< Data while communicating a NUMBER token.
 	struct {
 		int line;    ///< Line number of the token.
 		char *value; ///< Characters stored.
-	} chars;
+	} chars; ///< Data while communicating an IDENTIFIER or STRING token.
 	Expression *expr;         ///< %Expression to pass on.
 	ExpressionList *exprlist; ///< Expression list to pass on.
 	NameTable *iden_table;    ///< 2D table with identifiers to pass on.

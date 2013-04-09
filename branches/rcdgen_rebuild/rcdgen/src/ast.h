@@ -191,7 +191,7 @@ public:
 	GroupList();
 	~GroupList();
 
-	std::list<Group *> groups;
+	std::list<Group *> groups; ///< Groups of the sequence.
 };
 
 /** A value with a name. */
@@ -210,7 +210,7 @@ public:
 	NamedValueList();
 	~NamedValueList();
 
-	std::list<NamedValue *> values;
+	std::list<NamedValue *> values; ///< Named values in the sequence.
 };
 
 #endif
