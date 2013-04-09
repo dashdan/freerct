@@ -423,3 +423,69 @@ ANSPBlock::~ANSPBlock()
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }
+
+PATHBlock::PATHBlock() : GameBlock("PATH", 1)
+{
+	for (int i = 0; i < PTS_COUNT; i++) this->sprites[i] = NULL;
+}
+
+PATHBlock::~PATHBlock()
+{
+	for (int i = 0; i < PTS_COUNT; i++) delete this->sprites[i];
+}
+
+/* virtual */ int PATHBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 2 + 2 + 2 + PTS_COUNT * 4);
+	fb->SaveUInt16(this->path_type);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	for (int i = 0; i < PTS_COUNT; i++) fb->SaveUInt32(this->sprites[i]->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+PLATBlock::PLATBlock() : GameBlock("PLAT", 2)
+{
+	for (int i = 0; i < PLA_COUNT; i++) this->sprites[i] = NULL;
+}
+
+PLATBlock::~PLATBlock()
+{
+	for (int i = 0; i < PLA_COUNT; i++) delete this->sprites[i];
+}
+
+/* virtual */ int PLATBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 2 + 2 + 2 + PLA_COUNT * 4);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	fb->SaveUInt16(this->platform_type);
+	for (int i = 0; i < PLA_COUNT; i++) fb->SaveUInt32(this->sprites[i]->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+SUPPBlock::SUPPBlock() : GameBlock("SUPP", 1)
+{
+	for (int i = 0; i < SPP_COUNT; i++) this->sprites[i] = NULL;
+}
+
+SUPPBlock::~SUPPBlock()
+{
+	for (int i = 0; i < SPP_COUNT; i++) delete this->sprites[i];
+}
+
+/* virtual */ int SUPPBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 2 + 2 + 2 + SPP_COUNT * 4);
+	fb->SaveUInt16(this->support_type);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	for (int i = 0; i < SPP_COUNT; i++) fb->SaveUInt32(this->sprites[i]->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}

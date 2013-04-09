@@ -652,6 +652,200 @@ static FUNDBlock *ConvertFUNDNode(NodeGroup *ng)
 	return fb;
 }
 
+/** Symbols for the PATH game block. */
+static const Symbol _path_symbols[] = {
+	{"concrete", 16},
+	{NULL, 0},
+};
+
+/** Names of the PATH sprites. */
+static const char *_path_sprites[] = {
+	"empty",
+	"ne",
+	"se",
+	"ne_se",
+	"ne_se_e",
+	"sw",
+	"ne_sw",
+	"se_sw",
+	"se_sw_s",
+	"ne_se_sw",
+	"ne_se_sw_e",
+	"ne_se_sw_s",
+	"ne_se_sw_e_s",
+	"nw",
+	"ne_nw",
+	"ne_nw_n",
+	"nw_se",
+	"ne_nw_se",
+	"ne_nw_se_n",
+	"ne_nw_se_e",
+	"ne_nw_se_n_e",
+	"nw_sw",
+	"nw_sw_w",
+	"ne_nw_sw",
+	"ne_nw_sw_n",
+	"ne_nw_sw_w",
+	"ne_nw_sw_n_w",
+	"nw_se_sw",
+	"nw_se_sw_s",
+	"nw_se_sw_w",
+	"nw_se_sw_s_w",
+	"ne_nw_se_sw",
+	"ne_nw_se_sw_n",
+	"ne_nw_se_sw_e",
+	"ne_nw_se_sw_n_e",
+	"ne_nw_se_sw_s",
+	"ne_nw_se_sw_n_s",
+	"ne_nw_se_sw_e_s",
+	"ne_nw_se_sw_n_e_s",
+	"ne_nw_se_sw_w",
+	"ne_nw_se_sw_n_w",
+	"ne_nw_se_sw_e_w",
+	"ne_nw_se_sw_n_e_w",
+	"ne_nw_se_sw_s_w",
+	"ne_nw_se_sw_n_s_w",
+	"ne_nw_se_sw_e_s_w",
+	"ne_nw_se_sw_n_e_s_w",
+	"ramp_ne",
+	"ramp_nw",
+	"ramp_se",
+	"ramp_sw",
+};
+
+/**
+ * Convert a node group to a PATH game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created PATH game block.
+ */
+static PATHBlock *ConvertPATHNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "PATH");
+	PATHBlock *blk = new PATHBlock;
+
+	Values vals("PATH", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false, _path_symbols);
+
+	blk->path_type = vals.FindValue("path_type").GetNumber(ng->line, "PATH");
+	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "PATH");
+	blk->z_height = vals.FindValue("z_height").GetNumber(ng->line, "PATH");
+
+	for (int i = 0; i < PTS_COUNT; i++) {
+		blk->sprites[i] = vals.FindValue(_path_sprites[i]).GetSprite(ng->line, "PATH");
+	}
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+/** Symbols for the platform game block. */
+static const Symbol _platform_symbols[] = {
+	{"wood", 16},
+	{NULL, 0},
+};
+
+/** Sprite names of the platform game block. */
+static const char *_platform_sprites[] = {
+	"ns",
+	"ew",
+	"ramp_ne",
+	"ramp_se",
+	"ramp_sw",
+	"ramp_nw",
+	"right_ramp_ne",
+	"right_ramp_se",
+	"right_ramp_sw",
+	"right_ramp_nw",
+	"left_ramp_ne",
+	"left_ramp_se",
+	"left_ramp_sw",
+	"left_ramp_nw",
+};
+
+/**
+ * Convert a node group to a PLAT game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created PLAT game block.
+ */
+static PLATBlock *ConvertPLATNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "PLAT");
+	PLATBlock *blk = new PLATBlock;
+
+	Values vals("PLAT", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false, _platform_symbols);
+
+	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "PLAT");
+	blk->z_height = vals.FindValue("z_height").GetNumber(ng->line, "PLAT");
+	blk->platform_type = vals.FindValue("platform_type").GetNumber(ng->line, "PLAT");
+
+	for (int i = 0; i < PLA_COUNT; i++) {
+		blk->sprites[i] = vals.FindValue(_platform_sprites[i]).GetSprite(ng->line, "PLAT");
+	}
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+/** Symbols for the support game block. */
+static const Symbol _support_symbols[] = {
+	{"wood", 16},
+	{NULL, 0},
+};
+
+/** Sprite names of the support game block. */
+static const char *_support_sprites[] = {
+	"s_ns",
+	"s_ew",
+	"d_ns",
+	"d_ew",
+	"p_ns",
+	"p_ew",
+	"n#n",
+	"n#e",
+	"n#ne",
+	"n#s",
+	"n#ns",
+	"n#es",
+	"n#nes",
+	"n#w",
+	"n#nw",
+	"n#ew",
+	"n#new",
+	"n#sw",
+	"n#nsw",
+	"n#esw",
+	"n#N",
+	"n#E",
+	"n#S",
+	"n#W",
+};
+
+/**
+ * Convert a node group to a PLAT game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created PLAT game block.
+ */
+static SUPPBlock *ConvertSUPPNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "SUPP");
+	SUPPBlock *blk = new SUPPBlock;
+
+	Values vals("SUPP", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false, _support_symbols);
+
+	blk->support_type = vals.FindValue("support_type").GetNumber(ng->line, "SUPP");
+	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "SUPP");
+	blk->z_height = vals.FindValue("z_height").GetNumber(ng->line, "SUPP");
+
+	for (int i = 0; i < SPP_COUNT; i++) {
+		blk->sprites[i] = vals.FindValue(_support_sprites[i]).GetSprite(ng->line, "SUPP");
+	}
+
+	vals.VerifyUsage();
+	return blk;
+}
+
 /**
  * Convert a node group to a TCOR game block.
  * @param ng Generic tree of nodes to convert.
@@ -660,7 +854,6 @@ static FUNDBlock *ConvertFUNDNode(NodeGroup *ng)
 static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 {
 	ExpandNoExpression(ng->exprs, ng->line, "TCOR");
-
 	TCORBlock *blk = new TCORBlock;
 
 	Values vals("TCOR", ng->line);
@@ -1017,6 +1210,9 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "PRSG") == 0) return ConvertPRSGNode(ng);
 	if (strcmp(ng->name, "ANIM") == 0) return ConvertANIMNode(ng);
 	if (strcmp(ng->name, "ANSP") == 0) return ConvertANSPNode(ng);
+	if (strcmp(ng->name, "PATH") == 0) return ConvertPATHNode(ng);
+	if (strcmp(ng->name, "PLAT") == 0) return ConvertPLATNode(ng);
+	if (strcmp(ng->name, "SUPP") == 0) return ConvertSUPPNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);

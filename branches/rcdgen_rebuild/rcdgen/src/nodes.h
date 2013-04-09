@@ -287,5 +287,157 @@ public:
 	std::list<SpriteBlock *> frames; ///< Sprite for every frame.
 };
 
+/** Path sprites. */
+enum PathSprites {
+	PTS_EMPTY,               ///< EMPTY.
+	PTS_NE,                  ///< NE.
+	PTS_SE,                  ///< SE.
+	PTS_NE_SE,               ///< NE_SE.
+	PTS_NE_SE_E,             ///< NE_SE_E.
+	PTS_SW,                  ///< SW.
+	PTS_NE_SW,               ///< NE_SW.
+	PTS_SE_SW,               ///< SE_SW.
+	PTS_SE_SW_S,             ///< SE_SW_S.
+	PTS_NE_SE_SW,            ///< NE_SE_SW.
+	PTS_NE_SE_SW_E,          ///< NE_SE_SW_E.
+	PTS_NE_SE_SW_S,          ///< NE_SE_SW_S.
+	PTS_NE_SE_SW_E_S,        ///< NE_SE_SW_E_S.
+	PTS_NW,                  ///< NW.
+	PTS_NE_NW,               ///< NE_NW.
+	PTS_NE_NW_N,             ///< NE_NW_N.
+	PTS_NW_SE,               ///< NW_SE.
+	PTS_NE_NW_SE,            ///< NE_NW_SE.
+	PTS_NE_NW_SE_N,          ///< NE_NW_SE_N.
+	PTS_NE_NW_SE_E,          ///< NE_NW_SE_E.
+	PTS_NE_NW_SE_N_E,        ///< NE_NW_SE_N_E.
+	PTS_NW_SW,               ///< NW_SW.
+	PTS_NW_SW_W,             ///< NW_SW_W.
+	PTS_NE_NW_SW,            ///< NE_NW_SW.
+	PTS_NE_NW_SW_N,          ///< NE_NW_SW_N.
+	PTS_NE_NW_SW_W,          ///< NE_NW_SW_W.
+	PTS_NE_NW_SW_N_W,        ///< NE_NW_SW_N_W.
+	PTS_NW_SE_SW,            ///< NW_SE_SW.
+	PTS_NW_SE_SW_S,          ///< NW_SE_SW_S.
+	PTS_NW_SE_SW_W,          ///< NW_SE_SW_W.
+	PTS_NW_SE_SW_S_W,        ///< NW_SE_SW_S_W.
+	PTS_NE_NW_SE_SW,         ///< NE_NW_SE_SW.
+	PTS_NE_NW_SE_SW_N,       ///< NE_NW_SE_SW_N.
+	PTS_NE_NW_SE_SW_E,       ///< NE_NW_SE_SW_E.
+	PTS_NE_NW_SE_SW_N_E,     ///< NE_NW_SE_SW_N_E.
+	PTS_NE_NW_SE_SW_S,       ///< NE_NW_SE_SW_S.
+	PTS_NE_NW_SE_SW_N_S,     ///< NE_NW_SE_SW_N_S.
+	PTS_NE_NW_SE_SW_E_S,     ///< NE_NW_SE_SW_E_S.
+	PTS_NE_NW_SE_SW_N_E_S,   ///< NE_NW_SE_SW_N_E_S.
+	PTS_NE_NW_SE_SW_W,       ///< NE_NW_SE_SW_W.
+	PTS_NE_NW_SE_SW_N_W,     ///< NE_NW_SE_SW_N_W.
+	PTS_NE_NW_SE_SW_E_W,     ///< NE_NW_SE_SW_E_W.
+	PTS_NE_NW_SE_SW_N_E_W,   ///< NE_NW_SE_SW_N_E_W.
+	PTS_NE_NW_SE_SW_S_W,     ///< NE_NW_SE_SW_S_W.
+	PTS_NE_NW_SE_SW_N_S_W,   ///< NE_NW_SE_SW_N_S_W.
+	PTS_NE_NW_SE_SW_E_S_W,   ///< NE_NW_SE_SW_E_S_W.
+	PTS_NE_NW_SE_SW_N_E_S_W, ///< NE_NW_SE_SW_N_E_S_W.
+	PTS_NE_EDGE_UP,          ///< NE_EDGE_UP.
+	PTS_NW_EDGE_UP,          ///< NW_EDGE_UP.
+	PTS_SE_EDGE_UP,          ///< SE_EDGE_UP.
+	PTS_SW_EDGE_UP,          ///< SW_EDGE_UP.
+
+	PTS_COUNT,               ///< Number of path sprites.
+};
+
+/** PATH game block. */
+class PATHBlock : public GameBlock {
+public:
+	PATHBlock();
+	/* virtual */ ~PATHBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int path_type;   ///< Type of path.
+	int tile_width;  ///< Size of the tile.
+	int z_height;   ///< Change in Z height (in pixels) when going up or down a tile level.
+
+	SpriteBlock *sprites[PTS_COUNT]; ///< Path sprites.
+};
+
+/** Platform sprites. */
+enum PlatformSprites {
+	PLA_NS,            ///< Flat platform for north and south view.
+	PLA_EW,            ///< Flat platform for east and west view.
+	PLA_RAMP_NE,       ///< Platform with two legs is raised at the NE edge.
+	PLA_RAMP_SE,       ///< Platform with two legs is raised at the SE edge.
+	PLA_RAMP_SW,       ///< Platform with two legs is raised at the SW edge.
+	PLA_RAMP_NW,       ///< Platform with two legs is raised at the NW edge.
+	PLA_RIGHT_RAMP_NE, ///< Platform with right leg is raised at the NE edge.
+	PLA_RIGHT_RAMP_SE, ///< Platform with right leg is raised at the SE edge.
+	PLA_RIGHT_RAMP_SW, ///< Platform with right leg is raised at the SW edge.
+	PLA_RIGHT_RAMP_NW, ///< Platform with right leg is raised at the NW edge.
+	PLA_LEFT_RAMP_NE,  ///< Platform with left leg is raised at the NE edge.
+	PLA_LEFT_RAMP_SE,  ///< Platform with left leg is raised at the SE edge.
+	PLA_LEFT_RAMP_SW,  ///< Platform with left leg is raised at the SW edge.
+	PLA_LEFT_RAMP_NW,  ///< Platform with left leg is raised at the NW edge.
+
+	PLA_COUNT, ///< Number of platform sprites.
+};
+
+/** PLAT game block. */
+class PLATBlock : public GameBlock {
+public:
+	PLATBlock();
+	/* virtual */ ~PLATBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int tile_width;    ///< Zoom-width of a tile of the surface.
+	int z_height;      ///< Change in Z height (in pixels) when going up or down a tile level.
+	int platform_type; ///< Type of platform.
+
+	SpriteBlock *sprites[PLA_COUNT]; ///< Platform sprites.
+};
+
+/** Sprites of the supports. */
+enum SupportSprites {
+	SPP_S_NS,    ///< Single height for flat terrain, north and south view.
+	SPP_S_EW,    ///< Single height for flat terrain, east and west view.
+	SPP_D_NS,    ///< Double height for flat terrain, north and south view.Double height for flat terrain, east and west view.
+	SPP_D_EW,    ///< Double height for flat terrain, east and west view.
+	SPP_P_NS,    ///< Double height for paths, north and south view.
+	SPP_P_EW,    ///< Double height for paths, east and west view.
+	SPP_N,       ///< Single height, north leg up.
+	SPP_E,       ///< Single height, east leg up.
+	SPP_NE,      ///< Single height, north, east legs up.
+	SPP_S,       ///< Single height, south leg up.
+	SPP_NS,      ///< Single height, north, south legs up.
+	SPP_ES,      ///< Single height, east, south legs up.
+	SPP_NES,     ///< Single height, north, east, south legs up.
+	SPP_W,       ///< Single height, west leg up.
+	SPP_NW,      ///< Single height, west, north legs up.
+	SPP_EW,      ///< Single height, west, east legs up.
+	SPP_NEW,     ///< Single height, west, north, east legs up.
+	SPP_SW,      ///< Single height, west, south legs up.
+	SPP_NSW,     ///< Single height, west, north, south legs up.
+	SPP_ESW,     ///< Single height, west, east, south legs up.
+	SPP_STEEP_N, ///< Double height for steep north slope.
+	SPP_STEEP_E, ///< Double height for steep east slope.
+	SPP_STEEP_S, ///< Double height for steep south slope.
+	SPP_STEEP_W, ///< Double height for steep west slope.
+
+	SPP_COUNT,   ///< Number of support sprites.
+};
+
+/** SUPP game block. */
+class SUPPBlock : public GameBlock {
+public:
+	SUPPBlock();
+	/* virtual */ ~SUPPBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int support_type; ///< Type of support.
+	int tile_width;   ///< Zoom-width of a tile of the surface.
+	int z_height;     ///< Change in Z height (in pixels) when going up or down a tile level.
+
+	SpriteBlock *sprites[SPP_COUNT]; ///< Support sprites.
+};
+
 #endif
 
