@@ -8,8 +8,11 @@
  */
 
 %{
+#include <cstdio>
 #include "scanner_funcs.h"
 #include "ast.h"
+
+GroupList *_parsed_data = NULL; ///< Result of parsing the input file.
 %}
 
 %token PAR_OPEN PAR_CLOSE CURLY_OPEN CURLY_CLOSE
@@ -32,7 +35,7 @@
 %%
 
 Program : GroupList {
-	delete $1;
+	_parsed_data = $1;
 }
         ;
 

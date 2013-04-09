@@ -7,7 +7,7 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with FreeRCT. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file image.cpp Image loading, cutting, and saving the sprites. */
+/** @file image.cpp %Image loading, cutting, and saving the sprites. */
 
 #include "stdafx.h"
 #include <cstdio>

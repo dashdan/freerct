@@ -33,7 +33,7 @@ Expression::~Expression()
 }
 
 /**
- * \func  Expression *Expression::Evaluate() const
+ * \fn  Expression *Expression::Evaluate() const
  * Evaluation of the expression. Reduces it to its value or throws a fatal error.
  * @return The computed reduced expression.
  */
@@ -84,10 +84,20 @@ StringLiteral::~StringLiteral()
 
 Expression *StringLiteral::Evaluate() const
 {
+	char *copy = this->CopyText();
+	return new StringLiteral(this->line, copy);
+}
+
+/**
+ * Return a copy of the text of the string literal.
+ * @return A copy of the string value.
+ */
+char *StringLiteral::CopyText() const
+{
 	int length = strlen(this->text);
 	char *copy = (char *)malloc(length + 1);
 	memcpy(copy, this->text, length + 1);
-	return new StringLiteral(this->line, copy);
+	return copy;
 }
 
 /**
@@ -139,6 +149,18 @@ Name::~Name() {
 }
 
 /**
+ * \fn Name::GetLine() const
+ * Get a line number representing the name (group).
+ * @return Line number pointing to the name part.
+ */
+
+/**
+ * \fn Name::GetNameCount() const
+ * Get the number of names attached to the 'name' part.
+ * @return The number of names in this #Name.
+ */
+
+/**
  * A name for a group consisting of a single label.
  * @param line Line number of the label name.
  * @param name The label name itself.
@@ -152,6 +174,16 @@ SingleName::SingleName(int line, char *name) : Name()
 SingleName::~SingleName()
 {
 	free(this->name);
+}
+
+int SingleName::GetLine() const
+{
+	return this->line;
+}
+
+int SingleName::GetNameCount() const
+{
+	return 1;
 }
 
 /**
@@ -190,6 +222,25 @@ IdentifierLine::~IdentifierLine()
 	free(this->name);
 }
 
+/**
+ * Retrieve a line number for this identifier.
+ * @return Line number.
+ */
+int IdentifierLine::GetLine() const
+{
+	return this->line;
+}
+
+/**
+ * Is it a valid identifier to use?
+ * @return Whether the name is valid for use.
+ */
+bool IdentifierLine::IsValid() const
+{
+	if (this->name == NULL) return false;
+	if (this->name[0] == '\0' || this->name[0] == '_') return false;
+	return true;
+}
 
 NameRow::NameRow()
 {
@@ -200,6 +251,29 @@ NameRow::~NameRow()
 	for (std::list<IdentifierLine *>::iterator iter = this->identifiers.begin(); iter != this->identifiers.end(); iter++) {
 		delete *iter;
 	}
+}
+
+/**
+ * Get a line number of the row, or \c 0 if none is available.
+ * @return Line number of the row.
+ */
+int NameRow::GetLine() const
+{
+	if (this->identifiers.size() > 0) return this->identifiers.front()->GetLine();
+	return 0;
+}
+
+/**
+ * Get the number of valid names in this row.
+ * @return Number of valid names.
+ */
+int NameRow::GetNameCount() const
+{
+	int count = 0;
+	for (std::list<IdentifierLine *>::const_iterator iter = this->identifiers.begin(); iter != this->identifiers.end(); iter++) {
+		if ((*iter)->IsValid()) count++;
+	}
+	return count;
 }
 
 NameTable::NameTable() : Name()
@@ -213,12 +287,54 @@ NameTable::~NameTable()
 	}
 }
 
+int NameTable::GetLine() const
+{
+	for (std::list<NameRow *>::const_iterator iter = this->rows.begin(); iter != this->rows.end(); iter++) {
+		int line = (*iter)->GetLine();
+		if (line > 0) return line;
+	}
+	return 0;
+}
+
+int NameTable::GetNameCount() const
+{
+	int count = 0;
+	for (std::list<NameRow *>::const_iterator iter = this->rows.begin(); iter != this->rows.end(); iter++) {
+		count += (*iter)->GetNameCount();
+	}
+	return count;
+}
+
 Group::Group()
 {
 }
 
 Group::~Group()
 {
+}
+
+/**
+ * \fn Group::GetLine() const
+ * Get a line number representing the name (group).
+ * @return Line number pointing to the name part.
+ */
+
+/**
+ * Cast the group to a #NodeGroup.
+ * @return a node group if the cast succeeded, else \c NULL.
+ */
+/* virtual */ NodeGroup *Group::CastToNodeGroup()
+{
+	return NULL;
+}
+
+/**
+ * Cast the group to a #ExpressionGroup.
+ * @return an expression group if the cast succeeded, else \c NULL.
+ */
+/* virtual */ ExpressionGroup *Group::CastToExpressionGroup()
+{
+	return NULL;
 }
 
 /**
@@ -243,6 +359,16 @@ NodeGroup::~NodeGroup()
 	delete this->values;
 }
 
+/* virtual */ int NodeGroup::GetLine() const
+{
+	return this->line;
+}
+
+/* virtual */ NodeGroup *NodeGroup::CastToNodeGroup()
+{
+	return this;
+}
+
 /**
  * Wrap an expression in a group.
  * @param expr %Expression to wrap.
@@ -255,6 +381,16 @@ ExpressionGroup::ExpressionGroup(Expression *expr) : Group()
 ExpressionGroup::~ExpressionGroup()
 {
 	delete this->expr;
+}
+
+/* virtual */ int ExpressionGroup::GetLine() const
+{
+	return this->expr->line;
+}
+
+/* virtual */ ExpressionGroup *ExpressionGroup::CastToExpressionGroup()
+{
+	return this;
 }
 
 GroupList::GroupList()

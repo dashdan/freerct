@@ -31,7 +31,7 @@ public:
 	ExpressionList();
 	~ExpressionList();
 
-	std::list<Expression *>exprs; ///< The sequence of expressions.
+	std::list<Expression *> exprs; ///< The sequence of expressions.
 };
 
 /** Unary operator expression. */
@@ -53,6 +53,8 @@ public:
 	/* virtual */ ~StringLiteral();
 
 	/* virtual */ Expression *Evaluate() const;
+
+	char *CopyText() const;
 
 	char *text; ///< Text of the string literal (decoded).
 };
@@ -84,6 +86,9 @@ class Name {
 public:
 	Name();
 	virtual ~Name();
+
+	virtual int GetLine() const = 0;
+	virtual int GetNameCount() const = 0;
 };
 
 /** Label of a named value containing a single name. */
@@ -91,6 +96,9 @@ class SingleName : public Name {
 public:
 	SingleName(int line, char *name);
 	/* virtual */ ~SingleName();
+
+	/* virtual */ int GetLine() const;
+	/* virtual */ int GetNameCount() const;
 
 	int line;   ///< Line number of the label.
 	char *name; ///< The label itself.
@@ -104,6 +112,9 @@ public:
 	IdentifierLine &operator=(const IdentifierLine &il);
 	~IdentifierLine();
 
+	int GetLine() const;
+	bool IsValid() const;
+
 	int line;   ///< Line number of the label.
 	char *name; ///< The label itself.
 };
@@ -114,7 +125,10 @@ public:
 	NameRow();
 	~NameRow();
 
-	std::list<IdentifierLine *> identifiers;
+	int GetLine() const;
+	int GetNameCount() const;
+
+	std::list<IdentifierLine *> identifiers; ///< Identifiers in this row.
 };
 
 /** a 2D table of identifiers. */
@@ -123,16 +137,25 @@ public:
 	NameTable();
 	/* virtual */ ~NameTable();
 
-	std::list<NameRow *> rows;
+	/* virtual */ int GetLine() const;
+	/* virtual */ int GetNameCount() const;
+
+	std::list<NameRow *> rows; ///< Rows of the table.
 };
 
 class NamedValueList;
+class NodeGroup;
+class ExpressionGroup;
 
 /** Base class of the value part of a named value. */
 class Group {
 public:
 	Group();
 	virtual ~Group();
+
+	virtual int GetLine() const = 0;
+	virtual NodeGroup *CastToNodeGroup();
+	virtual ExpressionGroup *CastToExpressionGroup();
 };
 
 /** Value part consisting of a node. */
@@ -140,6 +163,9 @@ class NodeGroup : public Group {
 public:
 	NodeGroup(int line, char *name, ExpressionList *exprs, NamedValueList *values);
 	/* virtual */ ~NodeGroup();
+
+	/* virtual */ int GetLine() const;
+	/* virtual */ NodeGroup *CastToNodeGroup();
 
 	int line;               ///< Line number of the node name.
 	char *name;             ///< Node name itself.
@@ -152,6 +178,9 @@ class ExpressionGroup : public Group {
 public:
 	ExpressionGroup(Expression *expr);
 	/* virtual */ ~ExpressionGroup();
+
+	/* virtual */ int GetLine() const;
+	/* virtual */ ExpressionGroup *CastToExpressionGroup();
 
 	Expression *expr; ///< Expression to store.
 };
@@ -171,7 +200,7 @@ public:
 	NamedValue(Name *name, Group *group);
 	~NamedValue();
 
-	Name *name;   ///< Name part.
+	Name *name;   ///< %Name part, may be \c NULL.
 	Group *group; ///< Value part.
 };
 

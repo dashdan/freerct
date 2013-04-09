@@ -7,24 +7,12 @@
  * See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with FreeRCT. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** @file main.cpp Main program. */
+/** @file check_data.h Check and simplify the loaded data. */
 
-#include "stdafx.h"
-#include "scanner_funcs.h"
-#include "check_data.h"
+#ifndef CHECK_DATA_H
+#define CHECK_DATA_H
 
-int main()
-{
-	/* Phase 1: Parse the input file. */
-	_parsed_data = NULL;
-	yyparse();
-	if (_parsed_data == NULL) {
-		fprintf(stderr, "Parsing of the input file failed");
-		exit(1);
-	}
+void CheckTree(GroupList *groups);
 
-	/* Phase 2: Check and simplify the loaded input. */
-	CheckTree(_parsed_data);
+#endif
 
-	exit(0);
-}

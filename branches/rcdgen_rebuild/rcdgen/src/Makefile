@@ -6,7 +6,7 @@
 # See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with FreeRCT. If not, see <http://www.gnu.org/licenses/>.
 #
 
-.PHONY: clean
+.PHONY: clean docs
 
 INCLUDES=
 LIBS=-lpng
@@ -16,7 +16,8 @@ BISON=bison
 FLEX=flex
 DEPEND=deps
 TARGET=rcdgen
-CXXFILES=ast.cpp image.cpp fileio.cpp main.cpp parser.cpp scanner.cpp scanner_funcs.cpp
+CXXFILES=ast.cpp check_data.cpp image.cpp fileio.cpp main.cpp \
+	nodes.cpp parser.cpp scanner.cpp scanner_funcs.cpp
 OBJFILES=$(CXXFILES:.cpp=.o)
 
 $(TARGET): $(DEPEND) $(OBJFILES)
@@ -41,6 +42,9 @@ tokens.h parser.cpp: parser.y
 scanner.cpp scanner.h: scanner.l
 	$(FLEX) --outfile=scanner.cpp scanner.l
 
+
+docs:
+	doxygen doxyfile
 
 ifndef NODEPS
 include $(DEPEND)

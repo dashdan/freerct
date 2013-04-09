@@ -56,4 +56,6 @@ union YyStruct {
 
 #define YYSTYPE YyStruct
 
+extern GroupList *_parsed_data;
+
 #endif
