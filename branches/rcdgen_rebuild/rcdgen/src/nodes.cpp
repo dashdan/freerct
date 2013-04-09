@@ -304,6 +304,10 @@ Recolouring::~Recolouring()
 {
 }
 
+/**
+ * Encode a colour range remapping.
+ * @return The encoded colour range remapping.
+ */
 uint32 Recolouring::Encode() const
 {
 	return (((uint32)this->orig) << 24) | (this->replace & 0xFFFFFF);
@@ -317,6 +321,12 @@ PersonGraphics::~PersonGraphics()
 {
 }
 
+/**
+ * Add a recolour mapping to the person graphics.
+ * @param orig Colour range to replace.
+ * @param replace Bitset of colour range that may be used instead.
+ * @return Whether adding was successful.
+ */
 bool PersonGraphics::AddRecolour(uint8 orig, uint32 replace)
 {
 	if (orig >= COLOUR_COUNT || replace == 0) return true; // Invalid recolouring can always be stored.

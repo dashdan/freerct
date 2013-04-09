@@ -212,13 +212,14 @@ enum ColourRange {
 	COLOUR_COUNT,    ///< Number of colour ranges.
 };
 
+/** Colour range remapping definition. */
 class Recolouring : public BlockNode {
 public:
 	Recolouring();
 	/* virtual */ ~Recolouring();
 
-	uint8 orig;
-	uint32 replace;
+	uint8 orig;     ///< Colour range to replace.
+	uint32 replace; ///< Bitset of colour ranges that may be used as replacement.
 
 	uint32 Encode() const;
 };
@@ -246,6 +247,7 @@ public:
 	std::list<PersonGraphics> person_graphics; ///< Stored person graphics.
 };
 
+/** ANIM frame data for a single frame. */
 class FrameData : public BlockNode {
 public:
 	FrameData();
@@ -256,6 +258,7 @@ public:
 	int change_y; ///< Change in y after the frame is displayed.
 };
 
+/** ANIM game block. */
 class ANIMBlock : public GameBlock {
 public:
 	ANIMBlock();
@@ -266,9 +269,10 @@ public:
 	int person_type; ///< Type of person being defined.
 	int anim_type;   ///< Type of animation being defined.
 
-	std::list<FrameData> frames;
+	std::list<FrameData> frames; ///< Frame data of every frame.
 };
 
+/** ANSP game block. */
 class ANSPBlock : public GameBlock {
 public:
 	ANSPBlock();
@@ -280,7 +284,7 @@ public:
 	int person_type; ///< Type of person being defined.
 	int anim_type;   ///< Type of animation being defined.
 
-	std::list<SpriteBlock *> frames;
+	std::list<SpriteBlock *> frames; ///< Sprite for every frame.
 };
 
 #endif

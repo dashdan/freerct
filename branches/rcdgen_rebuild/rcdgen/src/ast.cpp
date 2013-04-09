@@ -152,6 +152,11 @@ Expression *NumberLiteral::Evaluate(const Symbol *symbols) const
 	return new NumberLiteral(this->line, this->value);
 }
 
+/**
+ * Constructor of a bitset expression node.
+ * @param line Line number that uses the 'bitset' node.
+ * @param args Arguments of the bitsset node, may be \c NULL.
+ */
 BitSet::BitSet(int line, ExpressionList *args) : Expression(line)
 {
 	this->args = args;

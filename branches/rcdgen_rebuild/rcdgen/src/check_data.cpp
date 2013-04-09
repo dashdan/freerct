@@ -500,12 +500,7 @@ ValueInformation &Values::FindValue(const char *fld_name)
 	exit(1);
 }
 
-/**
- * Verify whether all named values were used in a node.
- * @param vis Collected named values.
- * @param length Number of entries in \a vis.
- * @param node %Name of the node.
- */
+/** Verify whether all named values were used in a node. */
 void Values::VerifyUsage()
 {
 	for (int i = 0; i < this->unnamed_count; i++) {
