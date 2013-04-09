@@ -36,7 +36,7 @@ public:
 
 bool operator==(const FileBlock &fb1, const FileBlock &fb2);
 
-
+/** Type definition for a list of file blocks. */
 typedef std::list<FileBlock *> FileBlockPtrList;
 
 /** RCD output file. */

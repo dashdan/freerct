@@ -15,6 +15,12 @@
 #include "check_data.h"
 #include "fileio.h"
 
+/**
+ * The main program of rcdgen.
+ * @param argc Number of argument given to the program.
+ * @param argv Argument texts.
+ * @return Exit code.
+ */
 int main(int argc, const char *argv[])
 {
 	if (argc > 1 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)) {

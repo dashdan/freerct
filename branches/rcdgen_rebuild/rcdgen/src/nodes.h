@@ -51,6 +51,7 @@ public:
 	std::list<GameBlock *>blocks; ///< Blocks of the file.
 };
 
+/** A sequence of file nodes. */
 class FileNodeList {
 public:
 	FileNodeList();
@@ -147,6 +148,7 @@ public:
 	SpriteBlock *west[SURFACE_COUNT];  ///< Corner select tiles while viewing to west.
 };
 
+/** Ground surface block SURF. */
 class SURFBlock : public GameBlock {
 public:
 	SURFBlock();
@@ -172,6 +174,7 @@ enum FoundationSprites {
 	FOUNDATION_COUNT, ///< Number of foundation sprites.
 };
 
+/** Foundation game block FUND. */
 class FUNDBlock : public GameBlock {
 public:
 	FUNDBlock();

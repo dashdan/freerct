@@ -140,6 +140,10 @@ int SpriteBlock::Write(FileWriter *fw)
 	return fw->AddBlock(fb);
 }
 
+/**
+ * Constructor of a sprite sheet.
+ * @param line Line number of the sheet node.
+ */
 SheetBlock::SheetBlock(int line)
 {
 	this->line = line;

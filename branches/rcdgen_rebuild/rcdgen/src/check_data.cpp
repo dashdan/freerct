@@ -22,6 +22,7 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng);
  * Check the number of expressions given in \a exprs, and expand them into the \a out array for easier access.
  * @param exprs %Expression list containing parameters.
  * @param out [out] Output array for storing \a expected expressions from the list.
+ * @param expected Expected number of expressions in \a exprs.
  * @param line Line number of the node (for reporting errors).
  * @param node %Name of the node being checked and expanded.
  */
@@ -231,6 +232,7 @@ ValueInformation::~ValueInformation()
  * Extract a number from the given expression.
  * @param line Line number of the node (for reporting errors).
  * @param node %Name of the node.
+ * @param symbols Symbols available for use in the expression.
  * @return Numeric value.
  */
 long long ValueInformation::GetNumber(int line, const char *node, const Symbol *symbols)
@@ -425,6 +427,7 @@ static void VerifyNamedValuesUse(ValueInformation *vis, int length, const char *
 	}
 }
 
+/** Names of surface sprites in a single direction of view. */
 static const char *_surface_sprite[] = {
 	"#",    // SF_FLAT
 	"#n",   // SF_N
@@ -694,7 +697,10 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 }
 
 /**
- * Check and convert the tree to nodes. */
+ * Check and convert the tree to nodes.
+ * @param root Root node of the tree.
+ * @return The converted and checked sequence of file data to write.
+ */
 FileNodeList *CheckTree(GroupList *root)
 {
 	assert(sizeof(_surface_sprite) / sizeof(_surface_sprite[0]) == SURFACE_COUNT);

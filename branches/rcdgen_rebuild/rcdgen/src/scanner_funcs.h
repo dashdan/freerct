@@ -22,7 +22,7 @@ void AddChar(int kar);
 int yylex();   ///< Generated scanner function.
 int yyparse(); ///< Generated parser function.
 
-extern FILE *yyin;
+extern FILE *yyin; ///< Input stream of the scanner. See also flex(1).
 void yyerror(const char *message);
 
 class Expression;
@@ -55,6 +55,7 @@ union YyStruct {
 	NamedValueList *values;   ///< Sequence of named values to pass on.
 };
 
+/** Macro defining the interface type between the scanner and parser. See also flex(1). */
 #define YYSTYPE YyStruct
 
 extern GroupList *_parsed_data;

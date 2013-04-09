@@ -209,6 +209,10 @@ IdentifierLine::IdentifierLine(int line, char *name)
 	this->name = name;
 }
 
+/**
+ * Copy constructor.
+ * @param il Existing identifier line to copy.
+ */
 IdentifierLine::IdentifierLine(const IdentifierLine &il)
 {
 	this->line = il.line;
