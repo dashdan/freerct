@@ -1,0 +1,23 @@
+
+
+file("border_tiles.rcd") {
+	TSEL(1) {
+		tile_width: 64;
+		z_height: 16;
+
+		(n#,   _n#,  _n#,  _n#
+		|n#n,  n#e,  n#s,  n#w
+		|n#ne, n#se, n#sw, n#nw
+		|n#ns, n#we, _n#ns,_n#ew
+		|n#nse,n#swe,n#nsw,n#nwe
+		|n#N,  n#E,  n#S,  n#W
+		): sheet {
+			file: "../../sprites_src/terrain/groundtiles/borderhighlight8bpp64_masked.png";
+			x_base: 0;     y_base: 0;
+			x_step: 64;    y_step: 64;
+			x_offset: -32; y_offset: -3;
+			width: 64;     height: 64;
+		}
+	}
+}
+
