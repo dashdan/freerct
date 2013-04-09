@@ -16,6 +16,8 @@
 #include <list>
 #include "image.h"
 
+class FileWriter;
+
 /** Base class for all nodes. */
 class BlockNode {
 public:
@@ -31,7 +33,9 @@ public:
 	GameBlock(const char *blk_name, int version);
 	/* virtual */ ~GameBlock();
 
-	const char *blk_name; ///< Name of the block.
+	virtual int Write(FileWriter *fw) = 0;
+
+	const char *blk_name; ///< %Name of the block.
 	int version;          ///< Version of the block.
 };
 
@@ -41,7 +45,9 @@ public:
 	FileNode(char *file_name);
 	/* virtual */ ~FileNode();
 
-	char *file_name;              ///< Name of the RCD file.
+	void Write(FileWriter *fw);
+
+	char *file_name;              ///< %Name of the RCD file.
 	std::list<GameBlock *>blocks; ///< Blocks of the file.
 };
 
@@ -83,6 +89,8 @@ public:
 	SpriteBlock();
 	/* virtual */ ~SpriteBlock();
 
+	int Write(FileWriter *fw);
+
 	SpriteImage sprite_image; ///< The stored sprite.
 };
 
@@ -97,7 +105,7 @@ public:
 	Image *GetSheet();
 
 	int line;         ///< Line number defining the sheet.
-	std::string file; ///< Name of the file containing the sprite sheet.
+	std::string file; ///< %Name of the file containing the sprite sheet.
 	int x_base;       ///< Horizontal base offset in the sheet.
 	int y_base;       ///< Vertical base offset in the sheet.
 	int x_step;       ///< Column step size.
@@ -115,6 +123,8 @@ class TSELBlock : public GameBlock {
 public:
 	TSELBlock(int version);
 	/* virtual */ ~TSELBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
 
 	int tile_width; ///< Zoom-width of a tile of the surface.
 	int z_height;   ///< Change in Z height (in pixels) when going up or down a tile level.

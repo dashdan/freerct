@@ -11,20 +11,54 @@
 
 #include "stdafx.h"
 #include "scanner_funcs.h"
+#include "nodes.h"
 #include "check_data.h"
+#include "fileio.h"
 
-int main()
+int main(int argc, const char *argv[])
 {
+	if (argc > 1 && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)) {
+		printf("RCD file generator. Usage: rcdgen [-h | --help] file\n");
+		exit(0);
+	}
+
+	if (argc > 2) {
+		fprintf(stderr, "Error: Too many arguments (use -h or --help for online help)\n");
+		exit(1);
+	}
+
+	FILE *infile = NULL;
+	if (argc == 2) {
+		infile = fopen(argv[1], "rb");
+		if (infile == NULL) {
+			printf("Error: Could not open file \"%s\"\n", argv[1]);
+			exit(1);
+		}
+	}
+
 	/* Phase 1: Parse the input file. */
+	if (infile != NULL) yyin = infile;
+
 	_parsed_data = NULL;
 	yyparse();
+
+	if (infile != NULL) fclose(infile);
+
 	if (_parsed_data == NULL) {
 		fprintf(stderr, "Parsing of the input file failed");
 		exit(1);
 	}
 
 	/* Phase 2: Check and simplify the loaded input. */
-	CheckTree(_parsed_data);
+	FileNodeList *file_nodes = CheckTree(_parsed_data);
 
+	/* Phase 3: Construct output files. */
+	for (std::list<FileNode *>::iterator iter = file_nodes->files.begin(); iter != file_nodes->files.end(); iter++) {
+		FileWriter fw;
+		(*iter)->Write(&fw);
+		fw.WriteFile((*iter)->file_name);
+	}
+
+	delete file_nodes;
 	exit(0);
 }

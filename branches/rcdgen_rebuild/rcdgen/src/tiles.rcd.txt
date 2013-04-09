@@ -15,7 +15,7 @@ file("border_tiles.rcd") {
 			file: "../../sprites_src/terrain/groundtiles/borderhighlight8bpp64_masked.png";
 			x_base: 0;     y_base: 0;
 			x_step: 64;    y_step: 64;
-			x_offset: -32; y_offset: -3;
+			x_offset: -32; y_offset: -33;
 			width: 64;     height: 64;
 		}
 	}

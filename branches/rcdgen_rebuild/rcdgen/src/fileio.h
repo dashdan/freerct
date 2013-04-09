@@ -14,7 +14,7 @@
 
 #include <list>
 
-/** A block in an RCD file. */
+/** A block in an RCD file. See #StartSave for details on usage. */
 class FileBlock {
 public:
 	FileBlock();

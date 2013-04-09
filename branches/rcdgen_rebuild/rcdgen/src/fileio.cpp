@@ -25,12 +25,13 @@ FileBlock::~FileBlock()
 }
 
 /**
- * Setup storing of data in the file block.
+ * Setup storing of data to the file block.
+ * Supply name of the block, version number, and expected data length (without the 12 byte header).
  * After setup, use #SaveUInt8, #SaveUInt16, #SaveUInt32, and #SaveBytes to store the data in the block.
  * Afterwards, use #CheckEndSave to verify the amount of actually written data matches with the expected length.
  * @param blk_name Name of the block (a 4 character text string).
  * @param version Version of the block.
- * @param data_length Length of the data part (that is, exlcusding the header).
+ * @param data_length Length of the data part (that is, excluding the header).
  */
 void FileBlock::StartSave(const char *blk_name, int version, int data_length)
 {

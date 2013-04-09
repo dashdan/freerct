@@ -22,6 +22,7 @@ void AddChar(int kar);
 int yylex();   ///< Generated scanner function.
 int yyparse(); ///< Generated parser function.
 
+extern FILE *yyin;
 void yyerror(const char *message);
 
 class Expression;

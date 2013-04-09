@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "nodes.h"
+#include "fileio.h"
 
 BlockNode::BlockNode()
 {
@@ -52,6 +53,14 @@ GameBlock::~GameBlock()
 }
 
 /**
+ * \fn GameBlock::Write(FileWriter *fw)
+ * Write the block to the file.
+ * @param fw File to write to.
+ * @return Block number of this game block in the file.
+ */
+
+
+/**
  * Constructor of the file node.
  * @param file_name Name of the file to write to.
  */
@@ -65,6 +74,17 @@ FileNode::~FileNode()
 	free(this->file_name);
 	for (std::list<GameBlock *>::iterator iter = this->blocks.begin(); iter != this->blocks.end(); iter++) {
 		delete *iter;
+	}
+}
+
+/**
+ * Output the content to \a fw, for writing it to a file.
+ * @param fw Store of file content.
+ */
+void FileNode::Write(FileWriter *fw)
+{
+	for (std::list<GameBlock *>::iterator iter = this->blocks.begin(); iter != this->blocks.end(); iter++) {
+		(*iter)->Write(fw);
 	}
 }
 
@@ -86,6 +106,36 @@ SpriteBlock::SpriteBlock() : BlockNode()
 
 SpriteBlock::~SpriteBlock()
 {
+}
+
+/**
+ * Write an 8PXL block.
+ * @param fw File to write to.
+ * @return Block number in the written file for this sprite.
+ */
+int SpriteBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	int length = 4 * 2 + 4 * this->sprite_image.height + this->sprite_image.data_size;
+	fb->StartSave("8PXL", 2, length);
+
+	fb->SaveUInt16(this->sprite_image.width);
+	fb->SaveUInt16(this->sprite_image.height);
+	fb->SaveUInt16(this->sprite_image.xoffset);
+	fb->SaveUInt16(this->sprite_image.yoffset);
+	length = 4 * this->sprite_image.height;
+	for (int i = 0; i < this->sprite_image.height; i++) {
+		if (this->sprite_image.row_sizes[i] == 0) {
+			fb->SaveUInt32(0);
+		} else {
+			fb->SaveUInt32(length);
+			length += this->sprite_image.row_sizes[i];
+		}
+	}
+	assert(length == 4 * this->sprite_image.height + this->sprite_image.data_size);
+	fb->SaveBytes(this->sprite_image.data, this->sprite_image.data_size);
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
 }
 
 SheetBlock::SheetBlock(int line)
@@ -144,3 +194,15 @@ TSELBlock::~TSELBlock()
 	}
 }
 
+/* virtual */ int TSELBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 92 - 12);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		fb->SaveUInt32(this->sprites[i]->Write(fw));
+	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
