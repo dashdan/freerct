@@ -76,12 +76,45 @@ SpriteBlock::~SpriteBlock()
 {
 }
 
-SheetBlock::SheetBlock()
+SheetBlock::SheetBlock(int line)
 {
+	this->line = line;
+	this->img_sheet = NULL;
 }
 
 SheetBlock::~SheetBlock()
 {
+	delete this->img_sheet;
+}
+
+/**
+ * Get the sprite sheet. Loads the sheet from the disk on the first call.
+ * @return The loaded image.
+ */
+Image *SheetBlock::GetSheet()
+{
+	if (this->img_sheet != NULL) return this->img_sheet;
+
+	this->img_sheet = new Image;
+	const char *err = this->img_sheet->LoadFile(file.c_str());
+	if (err != NULL) {
+		fprintf(stderr, "Error at line %d, loading of the sheet-image failed: %s\n", this->line, err);
+		exit(1);
+	}
+	return this->img_sheet;
+}
+
+/* virtual */ BlockNode *SheetBlock::GetSubNode(int row, int col, char *name, int line)
+{
+	Image *img = this->GetSheet();
+	SpriteBlock *spr_blk = new SpriteBlock;
+	const char *err = spr_blk->sprite_image.CopySprite(img, this->x_offset, this->y_offset,
+			this->x_base + this->x_step * col, this->y_base + this->y_step * row, this->width, this->height);
+	if (err != NULL) {
+		fprintf(stderr, "Error at line %d, loading of the sprite for \"%s\" failed: %s\n", line, name, err);
+		exit(1);
+	}
+	return spr_blk;
 }
 
 /**

@@ -14,6 +14,7 @@
 
 #include <string>
 #include <list>
+#include "image.h"
 
 /** Base class for all nodes. */
 class BlockNode {
@@ -73,14 +74,21 @@ class SpriteBlock : public BlockNode {
 public:
 	SpriteBlock();
 	/* virtual */ ~SpriteBlock();
+
+	SpriteImage sprite_image; ///< The stored sprite.
 };
 
 /** Block containing a sprite sheet. */
 class SheetBlock : public BlockNode {
 public:
-	SheetBlock();
+	SheetBlock(int line);
 	/* virtual */ ~SheetBlock();
 
+
+	/* virtual */ BlockNode *GetSubNode(int row, int col, char *name, int line);
+	Image *GetSheet();
+
+	int line;         ///< Line number defining the sheet.
 	std::string file; ///< Name of the file containing the sprite sheet.
 	int x_base;       ///< Horizontal base offset in the sheet.
 	int y_base;       ///< Vertical base offset in the sheet.
@@ -90,6 +98,8 @@ public:
 	int y_offset;     ///< Sprite offset (from the origin to the top edge of the sprite).
 	int width;        ///< Width of a sprite.
 	int height;       ///< Height of a sprite.
+
+	Image *img_sheet; ///< Sheet of images.
 };
 
 /** A 'TSEL' block. */

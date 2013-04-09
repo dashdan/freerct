@@ -439,7 +439,7 @@ static BlockNode *ConvertSheetNode(NodeGroup *ng)
 {
 	ExpandNoExpression(ng->exprs, ng->line, "sheet");
 
-	SheetBlock *sb = new SheetBlock;
+	SheetBlock *sb = new SheetBlock(ng->line);
 
 	int length = 0;
 	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
