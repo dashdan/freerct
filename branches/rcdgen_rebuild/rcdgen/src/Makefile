@@ -14,7 +14,7 @@ CXXFLAGS=-Wall -g
 CXX=g++
 DEPEND=deps
 TARGET=rcdgen
-CXXFILES=image.cpp main.cpp
+CXXFILES=image.cpp fileio.cpp main.cpp
 OBJFILES=$(CXXFILES:.cpp=.o)
 
 $(TARGET): $(DEPEND) $(OBJFILES)
