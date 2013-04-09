@@ -37,8 +37,9 @@ Expression::~Expression()
 }
 
 /**
- * \fn  Expression *Expression::Evaluate() const
+ * \fn  Expression *Expression::Evaluate(const Symbol *symbols) const
  * Evaluation of the expression. Reduces it to its value or throws a fatal error.
+ * @param symbols Sequence of known identifier names.
  * @return The computed reduced expression.
  */
 
@@ -59,9 +60,9 @@ UnaryOperator::~UnaryOperator()
 	delete child;
 }
 
-Expression *UnaryOperator::Evaluate() const
+Expression *UnaryOperator::Evaluate(const Symbol *symbols) const
 {
-	Expression *result = child->Evaluate();
+	Expression *result = child->Evaluate(symbols);
 	NumberLiteral *number = dynamic_cast<NumberLiteral *>(result);
 	if (number != NULL) {
 		number->value = -number->value;
@@ -86,7 +87,7 @@ StringLiteral::~StringLiteral()
 	free(this->text);
 }
 
-Expression *StringLiteral::Evaluate() const
+Expression *StringLiteral::Evaluate(const Symbol *symbols) const
 {
 	char *copy = this->CopyText();
 	return new StringLiteral(this->line, copy);
@@ -119,9 +120,16 @@ IdentifierLiteral::~IdentifierLiteral()
 	free(this->name);
 }
 
-Expression *IdentifierLiteral::Evaluate() const
+Expression *IdentifierLiteral::Evaluate(const Symbol *symbols) const
 {
-	fprintf(stderr, "Evaluate error at line %d: Need symbol table to evaluate an identifier", this->line);
+	if (symbols != NULL) {
+		for (;;) {
+			if (symbols->name == NULL) break;
+			if (strcmp(symbols->name, this->name) == 0) return new NumberLiteral(this->line, symbols->value);
+			symbols++;
+		}
+	}
+	fprintf(stderr, "Evaluate error at line %d: Identifier \"%s\" is not known\n", this->line, this->name);
 	exit(1);
 }
 
@@ -139,7 +147,7 @@ NumberLiteral::~NumberLiteral()
 {
 }
 
-Expression *NumberLiteral::Evaluate() const
+Expression *NumberLiteral::Evaluate(const Symbol *symbols) const
 {
 	return new NumberLiteral(this->line, this->value);
 }

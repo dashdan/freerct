@@ -121,7 +121,7 @@ public:
 /** A 'TSEL' block. */
 class TSELBlock : public GameBlock {
 public:
-	TSELBlock(int version);
+	TSELBlock();
 	/* virtual */ ~TSELBlock();
 
 	/* virtual */ int Write(FileWriter *fw);
@@ -134,7 +134,7 @@ public:
 /** A 'TCOR' block. */
 class TCORBlock : public GameBlock {
 public:
-	TCORBlock(int version);
+	TCORBlock();
 	/* virtual */ ~TCORBlock();
 
 	/* virtual */ int Write(FileWriter *fw);
@@ -145,6 +145,44 @@ public:
 	SpriteBlock *east[SURFACE_COUNT];  ///< Corner select tiles while viewing to east.
 	SpriteBlock *south[SURFACE_COUNT]; ///< Corner select tiles while viewing to south.
 	SpriteBlock *west[SURFACE_COUNT];  ///< Corner select tiles while viewing to west.
+};
+
+class SURFBlock : public GameBlock {
+public:
+	SURFBlock();
+	/* virtual */ ~SURFBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int surf_type;  ///< Type of surface.
+	int tile_width; ///< Zoom-width of a tile of the surface.
+	int z_height;   ///< Change in Z height (in pixels) when going up or down a tile level.
+	SpriteBlock *sprites[SURFACE_COUNT]; ///< Surface tiles.
+};
+
+/** Sprites of a foundation. */
+enum FoundationSprites {
+	FND_SE_E0, ///< Vertical south-east foundation, east visible, south down.
+	FND_SE_0S, ///< Vertical south-east foundation, east down, south visible.
+	FND_SE_ES, ///< Vertical south-east foundation, east visible, south visible.
+	FND_SW_S0, ///< Vertical south-west foundation, south visible, west down.
+	FND_SW_0W, ///< Vertical south-west foundation, south down, west visible.
+	FND_SW_SW, ///< Vertical south-west foundation, south visible, west visible.
+
+	FOUNDATION_COUNT, ///< Number of foundation sprites.
+};
+
+class FUNDBlock : public GameBlock {
+public:
+	FUNDBlock();
+	/* virtual */ ~FUNDBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int found_type; ///< Type of foundation.
+	int tile_width; ///< Zoom-width of a tile of the surface.
+	int z_height;   ///< Change in Z height (in pixels) when going up or down a tile level.
+	SpriteBlock *sprites[FOUNDATION_COUNT]; ///< Foundation tiles.
 };
 
 #endif

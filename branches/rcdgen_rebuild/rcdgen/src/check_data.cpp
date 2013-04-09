@@ -70,7 +70,7 @@ static char *GetString(Expression *expr, int index, const char *node)
 	if (sl != NULL) return sl->CopyText();
 
 	/* General case, compute its value. */
-	Expression *expr2 = expr->Evaluate();
+	Expression *expr2 = expr->Evaluate(NULL);
 	sl = dynamic_cast<StringLiteral *>(expr2);
 	if (sl == NULL) {
 		fprintf(stderr, "Error at line %d: Expression parameter %d of node %s is not a string", expr->line, index + 1, node);
@@ -86,16 +86,17 @@ static char *GetString(Expression *expr, int index, const char *node)
  * @param expr %Expression to evaluate.
  * @param index Parameter number (0-based, for error reporting).
  * @param node %Name of the node.
+ * @param symbols Symbols available for use in the expression.
  * @return Value of the number.
  */
-static long long GetNumber(Expression *expr, int index, const char *node)
+static long long GetNumber(Expression *expr, int index, const char *node, const Symbol *symbols = NULL)
 {
 	/* Simple case, expression is a number literal. */
 	NumberLiteral *nl = dynamic_cast<NumberLiteral *>(expr);
 	if (nl != NULL) return nl->value;
 
 	/* General case, compute its value. */
-	Expression *expr2 = expr->Evaluate();
+	Expression *expr2 = expr->Evaluate(symbols);
 	nl = dynamic_cast<NumberLiteral *>(expr2);
 	if (nl == NULL) {
 		fprintf(stderr, "Error at line %d: Expression parameter %d of node %s is not a number", expr->line, index + 1, node);
@@ -147,7 +148,7 @@ public:
 	ValueInformation &operator=(const ValueInformation &vi);
 	~ValueInformation();
 
-	long long GetNumber(int line, const char *node);
+	long long GetNumber(int line, const char *node, const Symbol *symbols = NULL);
 	std::string GetString(int line, const char *node);
 	SpriteBlock *GetSprite(int line, const char *node);
 
@@ -232,7 +233,7 @@ ValueInformation::~ValueInformation()
  * @param node %Name of the node.
  * @return Numeric value.
  */
-long long ValueInformation::GetNumber(int line, const char *node)
+long long ValueInformation::GetNumber(int line, const char *node, const Symbol *symbols)
 {
 	if (this->expr_value == NULL) {
 fail:
@@ -242,7 +243,7 @@ fail:
 	NumberLiteral *nl = dynamic_cast<NumberLiteral *>(this->expr_value); // Simple common case.
 	if (nl != NULL) return nl->value;
 
-	Expression *expr2 = this->expr_value->Evaluate(); // Generic case, evaluate the expression.
+	Expression *expr2 = this->expr_value->Evaluate(symbols); // Generic case, evaluate the expression.
 	nl = dynamic_cast<NumberLiteral *>(expr2);
 	if (nl == NULL) goto fail;
 
@@ -267,7 +268,7 @@ fail:
 	StringLiteral *sl = dynamic_cast<StringLiteral *>(this->expr_value); // Simple common case.
 	if (sl != NULL) return std::string(sl->text);
 
-	Expression *expr2 = this->expr_value->Evaluate(); // Generic case
+	Expression *expr2 = this->expr_value->Evaluate(NULL); // Generic case
 	sl = dynamic_cast<StringLiteral *>(expr2);
 	if (sl == NULL) goto fail;
 
@@ -349,9 +350,10 @@ void AssignNames(BlockNode *bn, NameTable *nt, ValueInformation *vis, int *lengt
  * Prepare the named values for access by field name.
  * @param values Named value to prepare.
  * @param length [out] Number of named values returned.
+ * @param symbols Optional symbols that may be used in the values.
  * @return Collection named values available for use. Caller should release its memory.
  */
-ValueInformation *PrepareNamedValues(NamedValueList *values, int *length)
+ValueInformation *PrepareNamedValues(NamedValueList *values, int *length, const Symbol *symbols = NULL)
 {
 	int total = 0;
 	for (std::list<NamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
@@ -395,7 +397,7 @@ ValueInformation *PrepareNamedValues(NamedValueList *values, int *length)
 			fprintf(stderr, "Error at line %d: Expression must have a single name\n", (*iter)->name->GetLine());
 			exit(1);
 		}
-		vis[*length].expr_value = eg->expr->Evaluate();
+		vis[*length].expr_value = eg->expr->Evaluate(symbols);
 		vis[*length].node_value = NULL;
 		vis[*length].name = std::string(sn->name);
 		vis[*length].line = sn->line;
@@ -452,17 +454,14 @@ static const char *_surface_sprite[] = {
  */
 static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 {
-	Expression *argument;
-	ExpandExpressions(ng->exprs, &argument, 1, ng->line, "TSEL");
+	ExpandNoExpression(ng->exprs, ng->line, "TSEL");
+	TSELBlock *blk = new TSELBlock;
 
-	int version = GetNumber(argument, 0, "TSEL");
-	TSELBlock *blk = new TSELBlock(version);
-
-	// Prepare named values for access
+	/* Prepare named values for access. */
 	int length = 0;
 	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
 
-	// get the fields and their value
+	/* get the fields and their value. */
 	blk->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "TSEL").GetNumber(ng->line, "TSEL");
 	blk->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "TSEL").GetNumber(ng->line, "TSEL");
 
@@ -478,6 +477,94 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 	return blk;
 }
 
+/** Available types of surface. */
+static const Symbol _surface_types[] = {
+	{"reserved",      0},
+	{"the_green",    16},
+	{"short_grass",  17},
+	{"medium_grass", 18},
+	{"long_grass",   19},
+	{"sand",         32},
+	{"cursor",       48},
+	{NULL, 0},
+};
+
+/**
+ * Convert a node group to a SURF game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created SURF game block.
+ */
+static SURFBlock *ConvertSURFNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "SURF");
+	SURFBlock *sb = new SURFBlock;
+
+	/* Prepare named values for access. */
+	int length = 0;
+	ValueInformation *vis = PrepareNamedValues(ng->values, &length, _surface_types);
+
+	sb->surf_type  = FindValueInformation("surf_type",  vis, length, ng->line, "SURF").GetNumber(ng->line, "SURF");
+	sb->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "SURF").GetNumber(ng->line, "SURF");
+	sb->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "SURF").GetNumber(ng->line, "SURF");
+
+	char buffer[16];
+	buffer[0] = 'n';
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		strcpy(buffer + 1, _surface_sprite[i]);
+		sb->sprites[i] = FindValueInformation(buffer, vis, length, ng->line, "SURF").GetSprite(ng->line, "SURF");
+	}
+
+	VerifyNamedValuesUse(vis, length, "SURF");
+	delete[] vis;
+	return sb;
+}
+
+/** Names of the foundation sprites. */
+static const char *_foundation_sprite[] = {
+	"se_e0", // FND_SE_E0,
+	"se_0s", // FND_SE_0S,
+	"se_es", // FND_SE_ES,
+	"sw_s0", // FND_SW_S0,
+	"sw_0w", // FND_SW_0W,
+	"sw_sw", // FND_SW_SW,
+};
+
+/** Numeric symbols of the foundation types. */
+static const Symbol _fund_symbols[] = {
+	{"reserved",  0},
+	{"ground",   16},
+	{"wood",     32},
+	{"brick",    48},
+	{NULL, 0}
+};
+
+/**
+ * Convert a node group to a FUND game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created FUND game block.
+ */
+static FUNDBlock *ConvertFUNDNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "FUND");
+	FUNDBlock *fb = new FUNDBlock;
+
+	/* Prepare named values for access. */
+	int length = 0;
+	ValueInformation *vis = PrepareNamedValues(ng->values, &length, _fund_symbols);
+
+	fb->found_type = FindValueInformation("found_type", vis, length, ng->line, "FUND").GetNumber(ng->line, "FUND");
+	fb->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "FUND").GetNumber(ng->line, "FUND");
+	fb->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "FUND").GetNumber(ng->line, "FUND");
+
+	for (int i = 0; i < FOUNDATION_COUNT; i++) {
+		fb->sprites[i] = FindValueInformation(_foundation_sprite[i], vis, length, ng->line, "FUND").GetSprite(ng->line, "FUND");
+	}
+
+	VerifyNamedValuesUse(vis, length, "FUND");
+	delete[] vis;
+	return fb;
+}
+
 /**
  * Convert a node group to a TCOR game block.
  * @param ng Generic tree of nodes to convert.
@@ -485,17 +572,15 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
  */
 static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 {
-	Expression *argument;
-	ExpandExpressions(ng->exprs, &argument, 1, ng->line, "TCOR");
+	ExpandNoExpression(ng->exprs, ng->line, "TCOR");
 
-	int version = GetNumber(argument, 0, "TCOR");
-	TCORBlock *blk = new TCORBlock(version);
+	TCORBlock *blk = new TCORBlock;
 
-	// Prepare named values for access
+	/* Prepare named values for access. */
 	int length = 0;
 	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
 
-	// get the fields and their value
+	/* get the fields and their value. */
 	blk->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "TCOR").GetNumber(ng->line, "TCOR");
 	blk->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "TCOR").GetNumber(ng->line, "TCOR");
 
@@ -597,9 +682,11 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "sheet") == 0) return ConvertSheetNode(ng);
 	if (strcmp(ng->name, "sprite") == 0) return ConvertSpriteNode(ng);
 
-	/* game blocks. */
+	/* Game blocks. */
 	if (strcmp(ng->name, "TSEL") == 0) return ConvertTSELNode(ng);
 	if (strcmp(ng->name, "TCOR") == 0) return ConvertTCORNode(ng);
+	if (strcmp(ng->name, "SURF") == 0) return ConvertSURFNode(ng);
+	if (strcmp(ng->name, "FUND") == 0) return ConvertFUNDNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);
@@ -611,6 +698,7 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 FileNodeList *CheckTree(GroupList *root)
 {
 	assert(sizeof(_surface_sprite) / sizeof(_surface_sprite[0]) == SURFACE_COUNT);
+	assert(sizeof(_foundation_sprite) / sizeof(_foundation_sprite[0]) == FOUNDATION_COUNT);
 
 	FileNodeList *file_nodes = new FileNodeList;
 	for (std::list<Group *>::iterator iter = root->groups.begin(); iter != root->groups.end(); iter++) {

@@ -181,18 +181,14 @@ Image *SheetBlock::GetSheet()
 	return spr_blk;
 }
 
-/**
- * Constructor of a TSEL block.
- * @param version Version number of the block.
- */
-TSELBlock::TSELBlock(int version) : GameBlock("TSEL", version)
+TSELBlock::TSELBlock() : GameBlock("TSEL", 1)
 {
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		this->sprites[i] = NULL;
 	}
 }
 
-TSELBlock::~TSELBlock()
+/* virtual */ TSELBlock::~TSELBlock()
 {
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		delete this->sprites[i];
@@ -212,11 +208,7 @@ TSELBlock::~TSELBlock()
 	return fw->AddBlock(fb);
 }
 
-/**
- * Constructor of a TCOR block.
- * @param version Version number of the block.
- */
-TCORBlock::TCORBlock(int version) : GameBlock("TCOR", version)
+TCORBlock::TCORBlock() : GameBlock("TCOR", 1)
 {
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		this->north[i] = NULL;
@@ -226,7 +218,7 @@ TCORBlock::TCORBlock(int version) : GameBlock("TCOR", version)
 	}
 }
 
-TCORBlock::~TCORBlock()
+/* virtual */ TCORBlock::~TCORBlock()
 {
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		delete this->north[i];
@@ -246,6 +238,54 @@ TCORBlock::~TCORBlock()
 	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->east[i]->Write(fw));
 	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->south[i]->Write(fw));
 	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->west[i]->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+SURFBlock::SURFBlock() : GameBlock("SURF", 3)
+{
+	for (int i = 0; i < SURFACE_COUNT; i++) this->sprites[i] = NULL;
+}
+
+SURFBlock::~SURFBlock()
+{
+	for (int i = 0; i < SURFACE_COUNT; i++) delete this->sprites[i];
+}
+
+/* virtual */ int SURFBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 94 - 12);
+	fb->SaveUInt16(this->surf_type);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		fb->SaveUInt32(this->sprites[i]->Write(fw));
+	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+FUNDBlock::FUNDBlock() : GameBlock("FUND", 1)
+{
+	for (int i = 0; i < FOUNDATION_COUNT; i++) this->sprites[i] = NULL;
+}
+
+FUNDBlock::~FUNDBlock()
+{
+	for (int i = 0; i < FOUNDATION_COUNT; i++) delete this->sprites[i];
+}
+
+/* virtual */ int FUNDBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 42 - 12);
+	fb->SaveUInt16(this->found_type);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	for (int i = 0; i < FOUNDATION_COUNT; i++) {
+		fb->SaveUInt32(this->sprites[i]->Write(fw));
+	}
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }

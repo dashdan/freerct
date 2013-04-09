@@ -14,13 +14,19 @@
 
 #include <list>
 
+/** A Symbol in a 'symboltable'. */
+struct Symbol {
+	const char *name; ///< Name of the symbol.
+	int value;        ///< Value of the symbol.
+};
+
 /** Base class of expressions. */
 class Expression {
 public:
 	Expression(int line);
 	virtual ~Expression();
 
-	virtual Expression *Evaluate() const = 0;
+	virtual Expression *Evaluate(const Symbol *symbols) const = 0;
 
 	int line; ///< Line number of the expression.
 };
@@ -40,7 +46,7 @@ public:
 	UnaryOperator(int line, int oper, Expression *child);
 	/* virtual */ ~UnaryOperator();
 
-	/* virtual */ Expression *Evaluate() const;
+	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
 
 	int oper; ///< Operation performed, currently only \c '-' (unary negation is supported).
 	Expression *child; ///< Child expression (should be numeric).
@@ -52,7 +58,7 @@ public:
 	StringLiteral(int line, char *text);
 	/* virtual */ ~StringLiteral();
 
-	/* virtual */ Expression *Evaluate() const;
+	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
 
 	char *CopyText() const;
 
@@ -65,7 +71,7 @@ public:
 	IdentifierLiteral(int line, char *name);
 	/* virtual */ ~IdentifierLiteral();
 
-	/* virtual */ Expression *Evaluate() const;
+	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
 
 	char *name; ///< The identifier of the expression.
 };
@@ -76,7 +82,7 @@ public:
 	NumberLiteral(int line, long long value);
 	/* virtual */ ~NumberLiteral();
 
-	/* virtual */ Expression *Evaluate() const;
+	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
 
 	long long value; ///< Value of the number literal.
 };

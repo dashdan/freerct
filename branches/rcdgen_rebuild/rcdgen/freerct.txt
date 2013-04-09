@@ -8,7 +8,7 @@
 
 file("borderhighlight_8bpp64.rcd") {
 	// Border highlight sprites.
-	TSEL(1) {
+	TSEL {
 		tile_width: 64;
 		z_height:  16;
 
@@ -33,7 +33,7 @@ file("borderhighlight_8bpp64.rcd") {
 
 file("cornerhighlight8bpp64.rcd") {
 	// Tile corner sprites.
-	TCOR(1) {
+	TCOR {
 		tile_width: 64;
 		z_height: 16;
 
@@ -423,7 +423,6 @@ file("cornerhighlight8bpp64.rcd") {
 	}
 }
 
-/*
 file("groundtile_8bpp64.rcd") {
 	// Cursor position test sprites.
 	SURF {
@@ -479,6 +478,7 @@ file("groundtile_8bpp64.rcd") {
 	}
 }
 
+/*
 file("people_animation.rcd") {
 	// Person type graphics.
 	PRSG {
