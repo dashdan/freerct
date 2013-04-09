@@ -430,15 +430,15 @@ static const char *_surface_sprite[] = {
 	"#ne",  // SF_NE
 	"#s",   // SF_S
 	"#ns",  // SF_NS
-	"#se",  // SF_ES
-	"#nse", // SF_NES
+	"#es",  // SF_ES
+	"#nes", // SF_NES
 	"#w",   // SF_W
 	"#nw",  // SF_WN
-	"#we",  // SF_WE
-	"#nwe", // SF_WNE
+	"#ew",  // SF_WE
+	"#new", // SF_WNE
 	"#sw",  // SF_WS
 	"#nsw", // SF_WNS
-	"#swe", // SF_WES
+	"#esw", // SF_WES
 	"#N",   // SF_STEEP_N
 	"#E",   // SF_STEEP_E
 	"#S",   // SF_STEEP_S
@@ -448,7 +448,7 @@ static const char *_surface_sprite[] = {
 /**
  * Convert a node group to a TSEL game block.
  * @param ng Generic tree of nodes to convert.
- * @return The created TSEL node.
+ * @return The created TSEL game block.
  */
 static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 {
@@ -474,6 +474,50 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 	}
 
 	VerifyNamedValuesUse(vis, length, "TSEL");
+	delete[] vis;
+	return blk;
+}
+
+/**
+ * Convert a node group to a TCOR game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created TCOR game block.
+ */
+static TCORBlock *ConvertTCORNode(NodeGroup *ng)
+{
+	Expression *argument;
+	ExpandExpressions(ng->exprs, &argument, 1, ng->line, "TCOR");
+
+	int version = GetNumber(argument, 0, "TCOR");
+	TCORBlock *blk = new TCORBlock(version);
+
+	// Prepare named values for access
+	int length = 0;
+	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+
+	// get the fields and their value
+	blk->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "TCOR").GetNumber(ng->line, "TCOR");
+	blk->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "TCOR").GetNumber(ng->line, "TCOR");
+
+	char buffer[16];
+	buffer[0] = 'n';
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		strcpy(buffer + 1, _surface_sprite[i]);
+
+		buffer[0] = 'n';
+		blk->north[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+
+		buffer[0] = 'e';
+		blk->east[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+
+		buffer[0] = 's';
+		blk->south[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+
+		buffer[0] = 'w';
+		blk->west[i] = FindValueInformation(buffer, vis, length, ng->line, "TCOR").GetSprite(ng->line, "TCOR");
+	}
+
+	VerifyNamedValuesUse(vis, length, "TCOR");
 	delete[] vis;
 	return blk;
 }
@@ -508,6 +552,41 @@ static BlockNode *ConvertSheetNode(NodeGroup *ng)
 }
 
 /**
+ * Convert a 'sprite' node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The converted sprite block.
+ */
+static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "sprite");
+
+	int length = 0;
+	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+
+	std::string file = FindValueInformation("file",     vis, length, ng->line, "sprite").GetString(ng->line, "sprite");
+	int xbase        = FindValueInformation("x_base",   vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+	int ybase        = FindValueInformation("y_base",   vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+	int width        = FindValueInformation("width",    vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+	int height       = FindValueInformation("height",   vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+	int xoffset      = FindValueInformation("x_offset", vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+	int yoffset      = FindValueInformation("y_offset", vis, length, ng->line, "sprite").GetNumber(ng->line, "sprite");
+
+	VerifyNamedValuesUse(vis, length, "sprite");
+	delete[] vis;
+
+	SpriteBlock *sb = new SpriteBlock;
+	Image img;
+	img.LoadFile(file.c_str());
+	const char *err = sb->sprite_image.CopySprite(&img, xoffset, yoffset, xbase, ybase, width, height);
+	if (err != NULL) {
+		fprintf(stderr, "Error at line %d, loading of the sprite for \"%s\" failed: %s\n", ng->line, ng->name, err);
+		exit(1);
+	}
+
+	return sb;
+}
+
+/**
  * Convert a node group.
  * @param ng Node group to convert.
  * @return The converted node.
@@ -516,9 +595,11 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 {
 	if (strcmp(ng->name, "file")  == 0) return ConvertFileNode(ng);
 	if (strcmp(ng->name, "sheet") == 0) return ConvertSheetNode(ng);
+	if (strcmp(ng->name, "sprite") == 0) return ConvertSpriteNode(ng);
 
 	/* game blocks. */
 	if (strcmp(ng->name, "TSEL") == 0) return ConvertTSELNode(ng);
+	if (strcmp(ng->name, "TCOR") == 0) return ConvertTCORNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);

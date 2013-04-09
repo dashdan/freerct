@@ -115,6 +115,8 @@ SpriteBlock::~SpriteBlock()
  */
 int SpriteBlock::Write(FileWriter *fw)
 {
+	if (this->sprite_image.data_size == 0) return 0; // Don't make empty sprites.
+
 	FileBlock *fb = new FileBlock;
 	int length = 4 * 2 + 4 * this->sprite_image.height + this->sprite_image.data_size;
 	fb->StartSave("8PXL", 2, length);
@@ -185,6 +187,9 @@ Image *SheetBlock::GetSheet()
  */
 TSELBlock::TSELBlock(int version) : GameBlock("TSEL", version)
 {
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		this->sprites[i] = NULL;
+	}
 }
 
 TSELBlock::~TSELBlock()
@@ -203,6 +208,44 @@ TSELBlock::~TSELBlock()
 	for (int i = 0; i < SURFACE_COUNT; i++) {
 		fb->SaveUInt32(this->sprites[i]->Write(fw));
 	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+/**
+ * Constructor of a TCOR block.
+ * @param version Version number of the block.
+ */
+TCORBlock::TCORBlock(int version) : GameBlock("TCOR", version)
+{
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		this->north[i] = NULL;
+		this->east[i] = NULL;
+		this->south[i] = NULL;
+		this->west[i] = NULL;
+	}
+}
+
+TCORBlock::~TCORBlock()
+{
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		delete this->north[i];
+		delete this->east[i];
+		delete this->south[i];
+		delete this->west[i];
+	}
+}
+
+/* virtual */ int TCORBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 320 - 12);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt16(this->z_height);
+	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->north[i]->Write(fw));
+	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->east[i]->Write(fw));
+	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->south[i]->Write(fw));
+	for (int i = 0; i < SURFACE_COUNT; i++) fb->SaveUInt32(this->west[i]->Write(fw));
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }

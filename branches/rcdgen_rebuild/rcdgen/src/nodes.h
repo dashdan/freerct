@@ -131,6 +131,21 @@ public:
 	SpriteBlock *sprites[SURFACE_COUNT]; ///< Surface tiles.
 };
 
+/** A 'TCOR' block. */
+class TCORBlock : public GameBlock {
+public:
+	TCORBlock(int version);
+	/* virtual */ ~TCORBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int tile_width; ///< Zoom-width of a tile of the surface.
+	int z_height;   ///< Change in Z height (in pixels) when going up or down a tile level.
+	SpriteBlock *north[SURFACE_COUNT]; ///< Corner select tiles while viewing to north.
+	SpriteBlock *east[SURFACE_COUNT];  ///< Corner select tiles while viewing to east.
+	SpriteBlock *south[SURFACE_COUNT]; ///< Corner select tiles while viewing to south.
+	SpriteBlock *west[SURFACE_COUNT];  ///< Corner select tiles while viewing to west.
+};
 
 #endif
 
