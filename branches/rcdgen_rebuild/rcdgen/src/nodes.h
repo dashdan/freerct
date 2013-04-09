@@ -45,6 +45,14 @@ public:
 	std::list<GameBlock *>blocks; ///< Blocks of the file.
 };
 
+class FileNodeList {
+public:
+	FileNodeList();
+	~FileNodeList();
+
+	std::list<FileNode *>files; ///< Output files.
+};
+
 /** Sprites of a surface. */
 enum SurfaceSprites {
 	SF_FLAT,       ///< Flat surface tile.

@@ -149,6 +149,7 @@ public:
 
 	long long GetNumber(int line, const char *node);
 	std::string GetString(int line, const char *node);
+	SpriteBlock *GetSprite(int line, const char *node);
 
 	Expression *expr_value; ///< %Expression attached to it (if any).
 	BlockNode *node_value;  ///< Node attached to it (if any).
@@ -273,6 +274,23 @@ fail:
 	std::string result = std::string(sl->text);
 	delete expr2;
 	return result;
+}
+
+/**
+ * Get a sprite (#SpriteBlock) from the given node value.
+ * @param line Line number of the node (for reporting errors).
+ * @param node %Name of the node.
+ * @return The sprite.
+ */
+SpriteBlock *ValueInformation::GetSprite(int line, const char *node)
+{
+	SpriteBlock *sb = dynamic_cast<SpriteBlock *>(this->node_value);
+	if (sb != NULL) {
+		this->node_value = NULL;
+		return sb;
+	}
+	fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a sprite node\n", line, this->name.c_str(), node);
+	exit(1);
 }
 
 /**
@@ -405,6 +423,28 @@ static void VerifyNamedValuesUse(ValueInformation *vis, int length, const char *
 	}
 }
 
+static const char *_surface_sprite[] = {
+	"#",    // SF_FLAT
+	"#n",   // SF_N
+	"#e",   // SF_E
+	"#ne",  // SF_NE
+	"#s",   // SF_S
+	"#ns",  // SF_NS
+	"#se",  // SF_ES
+	"#nse", // SF_NES
+	"#w",   // SF_W
+	"#nw",  // SF_WN
+	"#we",  // SF_WE
+	"#nwe", // SF_WNE
+	"#sw",  // SF_WS
+	"#nsw", // SF_WNS
+	"#swe", // SF_WES
+	"#N",   // SF_STEEP_N
+	"#E",   // SF_STEEP_E
+	"#S",   // SF_STEEP_S
+	"#W",   // SF_STEEP_W
+};
+
 /**
  * Convert a node group to a TSEL game block.
  * @param ng Generic tree of nodes to convert.
@@ -423,9 +463,17 @@ static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
 
 	// get the fields and their value
-	assert(0);
+	blk->tile_width = FindValueInformation("tile_width", vis, length, ng->line, "TSEL").GetNumber(ng->line, "TSEL");
+	blk->z_height   = FindValueInformation("z_height",   vis, length, ng->line, "TSEL").GetNumber(ng->line, "TSEL");
 
-	// check all values were used
+	char buffer[16];
+	buffer[0] = 'n';
+	for (int i = 0; i < SURFACE_COUNT; i++) {
+		strcpy(buffer + 1, _surface_sprite[i]);
+		blk->sprites[i] = FindValueInformation(buffer, vis, length, ng->line, "TSEL").GetSprite(ng->line, "TSEL");
+	}
+
+	VerifyNamedValuesUse(vis, length, "TSEL");
 	delete[] vis;
 	return blk;
 }
@@ -478,19 +526,22 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 }
 
 /**
- * Check and simplify all groups in \a groups.
- * @param groups Groups to check and simplify.
- */
-static void CheckGroupList(GroupList *groups)
+ * Check and convert the tree to nodes. */
+FileNodeList *CheckTree(GroupList *root)
 {
-	for (std::list<Group *>::iterator iter = groups->groups.begin(); iter != groups->groups.end(); iter++) {
+	assert(sizeof(_surface_sprite) / sizeof(_surface_sprite[0]) == SURFACE_COUNT);
+
+	FileNodeList *file_nodes = new FileNodeList;
+	for (std::list<Group *>::iterator iter = root->groups.begin(); iter != root->groups.end(); iter++) {
 		NodeGroup *ng = (*iter)->CastToNodeGroup();
 		assert(ng != NULL); // A GroupList can only have node groups.
-		ConvertNodeGroup(ng);
+		BlockNode *bn = ConvertNodeGroup(ng);
+		FileNode *fn = dynamic_cast<FileNode *>(bn);
+		if (fn == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a file node\n", ng->GetLine());
+			exit(1);
+		}
+		file_nodes->files.push_back(fn);
 	}
-}
-
-void CheckTree(GroupList *root)
-{
-	CheckGroupList(root);
+	return file_nodes;
 }

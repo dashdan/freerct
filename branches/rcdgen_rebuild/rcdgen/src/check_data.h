@@ -12,7 +12,9 @@
 #ifndef CHECK_DATA_H
 #define CHECK_DATA_H
 
-void CheckTree(GroupList *groups);
+class FileNodeList;
+
+FileNodeList *CheckTree(GroupList *groups);
 
 #endif
 

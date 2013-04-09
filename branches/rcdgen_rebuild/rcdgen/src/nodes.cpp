@@ -68,6 +68,18 @@ FileNode::~FileNode()
 	}
 }
 
+FileNodeList::FileNodeList()
+{
+}
+
+FileNodeList::~FileNodeList()
+{
+	for (std::list<FileNode *>::iterator iter = this->files.begin(); iter != this->files.end(); iter++) {
+		delete *iter;
+	}
+}
+
+
 SpriteBlock::SpriteBlock() : BlockNode()
 {
 }
