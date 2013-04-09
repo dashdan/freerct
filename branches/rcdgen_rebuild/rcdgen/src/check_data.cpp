@@ -708,12 +708,112 @@ static PRSGBlock *ConvertPRSGNode(NodeGroup *ng)
 	PRSGBlock *blk = new PRSGBlock;
 
 	Values vals("PRSG", ng->line);
-	vals.PrepareNamedValues(ng->values, true, false);
+	vals.PrepareNamedValues(ng->values, false, true);
+
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		PersonGraphics *pg = dynamic_cast<PersonGraphics *>(vi.node_value);
+		if (pg == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a person_graphics node\n", vi.line);
+			exit(1);
+		}
+		blk->person_graphics.push_back(*pg);
+		if (blk->person_graphics.size() > 255) {
+			fprintf(stderr, "Error at line %d: Too many person graphics in a PRSG block\n", vi.line);
+			exit(1);
+		}
+		vi.used = true;
+	}
 
 	vals.VerifyUsage();
 	return blk;
 }
 
+/** Symbols for an ANIM and ANSP blocks. */
+static const Symbol _anim_symbols[] = {
+	{"pillar",  8},
+	{"earth",  16},
+	{"walk_ne", 1}, // Walk in north-east direction.
+	{"walk_se", 2}, // Walk in south-east direction.
+	{"walk_sw", 3}, // Walk in south-west direction.
+	{"walk_nw", 4}, // Walk in north-west direction.
+	{NULL, 0}
+};
+
+/**
+ * Convert a node group to an ANIM game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created ANIM game block.
+ */
+static ANIMBlock *ConvertANIMNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "ANIM");
+	ANIMBlock *blk = new ANIMBlock;
+
+	Values vals("ANIM", ng->line);
+	vals.PrepareNamedValues(ng->values, true, true, _anim_symbols);
+
+	blk->person_type = vals.FindValue("person_type").GetNumber(ng->line, "ANIM");
+	blk->anim_type = vals.FindValue("anim_type").GetNumber(ng->line, "ANIM");
+
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		FrameData *fd = dynamic_cast<FrameData *>(vi.node_value);
+		if (fd == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a \"frame_data\" node\n", vi.line);
+			exit(1);
+		}
+		blk->frames.push_back(*fd);
+		if (blk->frames.size() > 0xFFFF) {
+			fprintf(stderr, "Error at line %d: Too many frames in an ANIM block\n", vi.line);
+			exit(1);
+		}
+		vi.used = true;
+	}
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+/**
+ * Convert a node group to an ANSP game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created ANSP game block.
+ */
+static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "ANSP");
+	ANSPBlock *blk = new ANSPBlock;
+
+	Values vals("ANSP", ng->line);
+	vals.PrepareNamedValues(ng->values, true, true, _anim_symbols);
+
+	blk->tile_width = vals.FindValue("tile_width").GetNumber(ng->line, "ANSP");
+	blk->person_type = vals.FindValue("person_type").GetNumber(ng->line, "ANSP");
+	blk->anim_type = vals.FindValue("anim_type").GetNumber(ng->line, "ANSP");
+
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		SpriteBlock *sp = dynamic_cast<SpriteBlock *>(vi.node_value);
+		if (sp == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a \"sprite\" node\n", vi.line);
+			exit(1);
+		}
+		blk->frames.push_back(sp);
+		vi.node_value = NULL;
+		if (blk->frames.size() > 0xFFFF) {
+			fprintf(stderr, "Error at line %d: Too many frames in an ANSP block\n", vi.line);
+			exit(1);
+		}
+		vi.used = true;
+	}
+
+	vals.VerifyUsage();
+	return blk;
+}
 
 /**
  * Convert a node group to a sprite-sheet block.
@@ -777,6 +877,129 @@ static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
 	return sb;
 }
 
+/** Names of person types and colour ranges. */
+static const Symbol _person_graphics_symbols[] = {
+	{"pillar",  8},
+	{"earth",  16},
+	{"grey",        COL_GREY},
+	{"green_brown", COL_GREEN_BROWN},
+	{"brown",       COL_BROWN},
+	{"yellow",      COL_YELLOW},
+	{"dark_red",    COL_DARK_RED},
+	{"dark_green",  COL_DARK_GREEN},
+	{"light_green", COL_LIGHT_GREEN},
+	{"green",       COL_GREEN},
+	{"light_red",   COL_LIGHT_RED},
+	{"dark_blue",   COL_DARK_BLUE},
+	{"blue",        COL_BLUE},
+	{"light_blue",  COL_LIGHT_BLUE},
+	{"purple",      COL_PURPLE},
+	{"red",         COL_RED},
+	{"orange",      COL_ORANGE},
+	{"sea_green",   COL_SEA_GREEN},
+	{"pink",        COL_PINK},
+	{"beige",       COL_BEIGE},
+	{NULL, 0}
+};
+
+/** Colour ranges for the recolour node. */
+static const Symbol _recolour_symbols[] = {
+	{"grey",        COL_GREY},
+	{"green_brown", COL_GREEN_BROWN},
+	{"brown",       COL_BROWN},
+	{"yellow",      COL_YELLOW},
+	{"dark_red",    COL_DARK_RED},
+	{"dark_green",  COL_DARK_GREEN},
+	{"light_green", COL_LIGHT_GREEN},
+	{"green",       COL_GREEN},
+	{"light_red",   COL_LIGHT_RED},
+	{"dark_blue",   COL_DARK_BLUE},
+	{"blue",        COL_BLUE},
+	{"light_blue",  COL_LIGHT_BLUE},
+	{"purple",      COL_PURPLE},
+	{"red",         COL_RED},
+	{"orange",      COL_ORANGE},
+	{"sea_green",   COL_SEA_GREEN},
+	{"pink",        COL_PINK},
+	{"beige",       COL_BEIGE},
+	{NULL, 0}
+};
+
+/**
+ * Convert a 'person_graphics' node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The converted sprite block.
+ */
+static PersonGraphics *ConvertPersonGraphicsNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "person_graphics");
+	PersonGraphics *pg = new PersonGraphics;
+
+	Values vals("person_graphics", ng->line);
+	vals.PrepareNamedValues(ng->values, true, true, _person_graphics_symbols);
+
+	pg->person_type = vals.FindValue("person_type").GetNumber(ng->line, "person_graphics");
+
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		Recolouring *rc = dynamic_cast<Recolouring *>(vi.node_value);
+		if (rc == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a recolour node\n", vi.line);
+			exit(1);
+		}
+		if (!pg->AddRecolour(rc->orig, rc->replace)) {
+			fprintf(stderr, "Error at line %d: Recolouring node cannot be stored (maximum is 3)\n", vi.line);
+			exit(1);
+		}
+		vi.used = true;
+	}
+
+	vals.VerifyUsage();
+	return pg;
+}
+
+/**
+ * Convert a 'recolour' node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The converted sprite block.
+ */
+static Recolouring *ConvertRecolourNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "recolour");
+	Recolouring *rc = new Recolouring;
+
+	Values vals("recolour", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false, _recolour_symbols);
+
+	rc->orig = vals.FindValue("original").GetNumber(ng->line, "recolour");
+	rc->replace = vals.FindValue("replace").GetNumber(ng->line, "recolour");
+
+	vals.VerifyUsage();
+	return rc;
+}
+
+/**
+ * Convert a 'frame_data' node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The converted sprite block.
+ */
+static FrameData *ConvertFrameDataNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "frame_data");
+	FrameData *fd = new FrameData;
+
+	Values vals("frame_data", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	fd->duration = vals.FindValue("duration").GetNumber(ng->line, "frame_data");
+	fd->change_x = vals.FindValue("change_x").GetNumber(ng->line, "frame_data");
+	fd->change_y = vals.FindValue("change_y").GetNumber(ng->line, "frame_data");
+
+	vals.VerifyUsage();
+	return fd;
+}
+
 /**
  * Convert a node group.
  * @param ng Node group to convert.
@@ -787,6 +1010,9 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "file")  == 0) return ConvertFileNode(ng);
 	if (strcmp(ng->name, "sheet") == 0) return ConvertSheetNode(ng);
 	if (strcmp(ng->name, "sprite") == 0) return ConvertSpriteNode(ng);
+	if (strcmp(ng->name, "person_graphics") == 0) return ConvertPersonGraphicsNode(ng);
+	if (strcmp(ng->name, "recolour") == 0) return ConvertRecolourNode(ng);
+	if (strcmp(ng->name, "frame_data") == 0) return ConvertFrameDataNode(ng);
 
 	/* Game blocks. */
 	if (strcmp(ng->name, "TSEL") == 0) return ConvertTSELNode(ng);
@@ -794,6 +1020,8 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "SURF") == 0) return ConvertSURFNode(ng);
 	if (strcmp(ng->name, "FUND") == 0) return ConvertFUNDNode(ng);
 	if (strcmp(ng->name, "PRSG") == 0) return ConvertPRSGNode(ng);
+	if (strcmp(ng->name, "ANIM") == 0) return ConvertANIMNode(ng);
+	if (strcmp(ng->name, "ANSP") == 0) return ConvertANSPNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);

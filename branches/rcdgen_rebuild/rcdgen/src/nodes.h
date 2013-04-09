@@ -212,8 +212,10 @@ enum ColourRange {
 	COLOUR_COUNT,    ///< Number of colour ranges.
 };
 
-struct Recolouring {
+class Recolouring : public BlockNode {
+public:
 	Recolouring();
+	/* virtual */ ~Recolouring();
 
 	uint8 orig;
 	uint32 replace;
@@ -222,7 +224,11 @@ struct Recolouring {
 };
 
 /** Definition of graphics of one type of person. */
-struct PersonGraphics {
+class PersonGraphics : public BlockNode {
+public:
+	PersonGraphics();
+	/* virtual */ ~PersonGraphics();
+
 	int person_type;      ///< Type of person being defined.
 	Recolouring recol[3]; ///< Recolour definitions.
 
@@ -238,6 +244,43 @@ public:
 	/* virtual */ int Write(FileWriter *fw);
 
 	std::list<PersonGraphics> person_graphics; ///< Stored person graphics.
+};
+
+class FrameData : public BlockNode {
+public:
+	FrameData();
+	/* virtual */ ~FrameData();
+
+	int duration; ///< Duration of this frame.
+	int change_x; ///< Change in x after the frame is displayed.
+	int change_y; ///< Change in y after the frame is displayed.
+};
+
+class ANIMBlock : public GameBlock {
+public:
+	ANIMBlock();
+	/* virtual */ ~ANIMBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int person_type; ///< Type of person being defined.
+	int anim_type;   ///< Type of animation being defined.
+
+	std::list<FrameData> frames;
+};
+
+class ANSPBlock : public GameBlock {
+public:
+	ANSPBlock();
+	/* virtual */ ~ANSPBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int tile_width;  ///< Size of the tile.
+	int person_type; ///< Type of person being defined.
+	int anim_type;   ///< Type of animation being defined.
+
+	std::list<SpriteBlock *> frames;
 };
 
 #endif

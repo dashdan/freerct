@@ -300,9 +300,21 @@ Recolouring::Recolouring()
 	this->replace = 0;
 }
 
+Recolouring::~Recolouring()
+{
+}
+
 uint32 Recolouring::Encode() const
 {
 	return (((uint32)this->orig) << 24) | (this->replace & 0xFFFFFF);
+}
+
+PersonGraphics::PersonGraphics() : BlockNode()
+{
+}
+
+PersonGraphics::~PersonGraphics()
+{
 }
 
 bool PersonGraphics::AddRecolour(uint8 orig, uint32 replace)
@@ -343,3 +355,61 @@ PRSGBlock::~PRSGBlock()
 	return fw->AddBlock(fb);
 }
 
+FrameData::FrameData() : BlockNode()
+{
+}
+
+FrameData::~FrameData()
+{
+}
+
+ANIMBlock::ANIMBlock() : GameBlock("ANIM", 2)
+{
+}
+
+ANIMBlock::~ANIMBlock()
+{
+}
+
+/* virtual */ int ANIMBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 1 + 2 + 2 + this->frames.size() * 6);
+	fb->SaveUInt8(this->person_type);
+	fb->SaveUInt16(this->anim_type);
+	fb->SaveUInt16(this->frames.size());
+	for (std::list<FrameData>::iterator iter = this->frames.begin(); iter != this->frames.end(); iter++) {
+		const FrameData &fd = *iter;
+		fb->SaveUInt16(fd.duration);
+		fb->SaveInt16(fd.change_x);
+		fb->SaveInt16(fd.change_y);
+	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+ANSPBlock::ANSPBlock() : GameBlock("ANSP", 1)
+{
+}
+
+ANSPBlock::~ANSPBlock()
+{
+	for (std::list<SpriteBlock *>::iterator iter = this->frames.begin(); iter != this->frames.end(); iter++) {
+		delete *iter;
+	}
+}
+
+/* virtual */ int ANSPBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 2 + 1 + 2 + 2 + this->frames.size() * 4);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt8(this->person_type);
+	fb->SaveUInt16(this->anim_type);
+	fb->SaveUInt16(this->frames.size());
+	for (std::list<SpriteBlock *>::iterator iter = this->frames.begin(); iter != this->frames.end(); iter++) {
+		fb->SaveUInt32((*iter)->Write(fw));
+	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
