@@ -188,5 +188,57 @@ public:
 	SpriteBlock *sprites[FOUNDATION_COUNT]; ///< Foundation tiles.
 };
 
+/** Colour ranges. */
+enum ColourRange {
+	COL_GREY,        ///< Colour range for grey.
+	COL_GREEN_BROWN, ///< Colour range for green_brown.
+	COL_BROWN,       ///< Colour range for brown.
+	COL_YELLOW,      ///< Colour range for yellow.
+	COL_DARK_RED,    ///< Colour range for dark_red.
+	COL_DARK_GREEN,  ///< Colour range for dark_green.
+	COL_LIGHT_GREEN, ///< Colour range for light_green.
+	COL_GREEN,       ///< Colour range for green.
+	COL_LIGHT_RED,   ///< Colour range for light_red.
+	COL_DARK_BLUE,   ///< Colour range for dark_blue.
+	COL_BLUE,        ///< Colour range for blue.
+	COL_LIGHT_BLUE,  ///< Colour range for light_blue.
+	COL_PURPLE,      ///< Colour range for purple.
+	COL_RED,         ///< Colour range for red.
+	COL_ORANGE,      ///< Colour range for orange.
+	COL_SEA_GREEN,   ///< Colour range for sea_green.
+	COL_PINK,        ///< Colour range for pink.
+	COL_BEIGE,       ///< Colour range for beige.
+
+	COLOUR_COUNT,    ///< Number of colour ranges.
+};
+
+struct Recolouring {
+	Recolouring();
+
+	uint8 orig;
+	uint32 replace;
+
+	uint32 Encode() const;
+};
+
+/** Definition of graphics of one type of person. */
+struct PersonGraphics {
+	int person_type;      ///< Type of person being defined.
+	Recolouring recol[3]; ///< Recolour definitions.
+
+	bool AddRecolour(uint8 orig, uint32 replace);
+};
+
+/** Person graphics game block. */
+class PRSGBlock : public GameBlock {
+public:
+	PRSGBlock();
+	/* virtual */ ~PRSGBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	std::list<PersonGraphics> person_graphics; ///< Stored person graphics.
+};
+
 #endif
 

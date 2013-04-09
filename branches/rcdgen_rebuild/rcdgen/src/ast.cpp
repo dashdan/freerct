@@ -152,6 +152,34 @@ Expression *NumberLiteral::Evaluate(const Symbol *symbols) const
 	return new NumberLiteral(this->line, this->value);
 }
 
+BitSet::BitSet(int line, ExpressionList *args) : Expression(line)
+{
+	this->args = args;
+}
+
+BitSet::~BitSet()
+{
+	delete this->args;
+}
+
+Expression *BitSet::Evaluate(const Symbol *symbols) const
+{
+	long long value = 0;
+	if (this->args != NULL) {
+		for (std::list<Expression *>::const_iterator iter = this->args->exprs.begin(); iter != this->args->exprs.end(); iter++) {
+			Expression *e = (*iter)->Evaluate(symbols);
+			NumberLiteral *nl = dynamic_cast<NumberLiteral *>(e);
+			if (nl == NULL) {
+				fprintf(stderr, "Error at line %d: Bit set argument is not an number\n", (*iter)->line);
+				exit(1);
+			}
+			value |= 1ll << nl->value;
+			delete e;
+		}
+	}
+	return new NumberLiteral(this->line, value);
+}
+
 
 Name::Name()
 {

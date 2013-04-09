@@ -293,3 +293,53 @@ FUNDBlock::~FUNDBlock()
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }
+
+Recolouring::Recolouring()
+{
+	this->orig = COLOUR_COUNT;
+	this->replace = 0;
+}
+
+uint32 Recolouring::Encode() const
+{
+	return (((uint32)this->orig) << 24) | (this->replace & 0xFFFFFF);
+}
+
+bool PersonGraphics::AddRecolour(uint8 orig, uint32 replace)
+{
+	if (orig >= COLOUR_COUNT || replace == 0) return true; // Invalid recolouring can always be stored.
+
+	for (int i = 0; i < 3; i++) {
+		if (this->recol[i].orig >= COLOUR_COUNT) {
+			this->recol[i].orig = orig;
+			this->recol[i].replace = replace;
+			return true;
+		}
+	}
+	return false;
+}
+
+PRSGBlock::PRSGBlock() : GameBlock("PRSG", 1)
+{
+}
+
+PRSGBlock::~PRSGBlock()
+{
+}
+
+/* virtual */ int PRSGBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 1 + this->person_graphics.size() * 13);
+	fb->SaveUInt8(this->person_graphics.size());
+	for (std::list<PersonGraphics>::iterator iter = this->person_graphics.begin(); iter != this->person_graphics.end(); iter++) {
+		const PersonGraphics &pg = *iter;
+		fb->SaveUInt8(pg.person_type);
+		fb->SaveUInt32(pg.recol[0].Encode());
+		fb->SaveUInt32(pg.recol[1].Encode());
+		fb->SaveUInt32(pg.recol[2].Encode());
+	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+

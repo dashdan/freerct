@@ -94,6 +94,11 @@ int string_line; ///< Starting line of the string.
 	return NUMBER;
 }
 
+"bitset" {
+	yylval.line = line;
+	return BITSET_KW;
+}
+
 [A-Za-z_][A-Za-z0-9#_]* {
 	yylval.chars.line = line;
 	int length = strlen(yytext);

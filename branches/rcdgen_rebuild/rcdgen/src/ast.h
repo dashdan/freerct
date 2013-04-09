@@ -87,6 +87,17 @@ public:
 	long long value; ///< Value of the number literal.
 };
 
+/** Bit set expression ('or' of '1 << arg'). */
+class BitSet : public Expression {
+public:
+	BitSet(int line, ExpressionList *args);
+	/* virtual */ ~BitSet();
+
+	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
+
+	ExpressionList *args; ///< Arguments of the bitset, if any.
+};
+
 /** Base class for labels of named values. */
 class Name {
 public:

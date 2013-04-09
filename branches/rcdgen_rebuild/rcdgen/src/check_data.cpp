@@ -611,6 +611,25 @@ static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 }
 
 /**
+ * Convert a node group to a PRSG game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created PRSG game block.
+ */
+static PRSGBlock *ConvertPRSGNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "PRSG");
+	PRSGBlock *blk = new PRSGBlock;
+
+	int length = 0;
+	ValueInformation *vis = PrepareNamedValues(ng->values, &length);
+
+	VerifyNamedValuesUse(vis, length, "TCOR");
+	delete[] vis;
+	return blk;
+}
+
+
+/**
  * Convert a node group to a sprite-sheet block.
  * @param ng Generic tree of nodes to convert.
  * @return The created sprite-sheet node.
@@ -690,6 +709,7 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "TCOR") == 0) return ConvertTCORNode(ng);
 	if (strcmp(ng->name, "SURF") == 0) return ConvertSURFNode(ng);
 	if (strcmp(ng->name, "FUND") == 0) return ConvertFUNDNode(ng);
+	if (strcmp(ng->name, "PRSG") == 0) return ConvertPRSGNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);

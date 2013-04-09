@@ -478,7 +478,6 @@ file("groundtile_8bpp64.rcd") {
 	}
 }
 
-/*
 file("people_animation.rcd") {
 	// Person type graphics.
 	PRSG {
@@ -563,4 +562,3 @@ file("people_animation.rcd") {
 		}
 	}
 }
-*/

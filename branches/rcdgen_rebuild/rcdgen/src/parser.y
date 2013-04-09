@@ -17,7 +17,7 @@ GroupList *_parsed_data = NULL; ///< Result of parsing the input file.
 
 %token PAR_OPEN PAR_CLOSE CURLY_OPEN CURLY_CLOSE
 %token COLON PIPE SEMICOLON COMMA
-%token<line> MINUS
+%token<line> MINUS BITSET_KW
 %token<chars> STRING
 %token<number> NUMBER
 %token<chars> IDENTIFIER
@@ -71,6 +71,16 @@ Factor : NUMBER {
 
 Factor : IDENTIFIER {
 	$$ = new IdentifierLiteral($1.line, $1.value);
+}
+       ;
+
+Factor : BITSET_KW PAR_OPEN PAR_CLOSE {
+	$$ = new BitSet($1, NULL);
+}
+       ;
+
+Factor : BITSET_KW PAR_OPEN ExpressionList PAR_CLOSE {
+	$$ = new BitSet($1, $3);
 }
        ;
 
