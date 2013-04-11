@@ -14,9 +14,11 @@
 
 #include <string>
 #include <list>
+#include <set>
 #include "image.h"
 
 class FileWriter;
+class FileBlock;
 
 /** Base class for all nodes. */
 class BlockNode {
@@ -437,6 +439,77 @@ public:
 	int z_height;     ///< Change in Z height (in pixels) when going up or down a tile level.
 
 	SpriteBlock *sprites[SPP_COUNT]; ///< Support sprites.
+};
+
+/** Known languages. */
+enum Languages {
+	LNG_DEFAULT, ///< Default language.
+	LNG_EN_GB,   ///< en_GB language.
+	LNG_NL_NL,   ///< nl_NL language.
+
+	LNG_COUNT,   ///< Number of known languages.
+};
+
+int GetLanguageIndex(const char *lname, int line);
+
+/** Texts of a single string. */
+class TextNode : public BlockNode {
+public:
+	TextNode();
+	/* virtual */ ~TextNode();
+
+	int GetSize() const;
+	void Write(FileBlock *fb) const;
+
+	std::string name;                     ///< Name of the textnode (used as key).
+	mutable std::string texts[LNG_COUNT]; ///< Text of the text node, in each language.
+	mutable int lines[LNG_COUNT];         ///< Line numbers defining the text (negative means undefined).
+};
+
+/**
+ * Comparator of #TextNode objects for sorting them in the Strings::texts set.
+ * @param tn1 First node to compare.
+ * @param tn2 Second node to compare.
+ * @return \a tn1 should be in front of \a tn2.
+ */
+inline bool operator<(const TextNode &tn1, const TextNode &tn2)
+{
+	return tn1.name < tn2.name;
+}
+
+/** Collection of translated strings. */
+class Strings : public BlockNode {
+public:
+	Strings();
+	/* virtual */ ~Strings();
+
+	void CheckTranslations(int line);
+	int Write(FileWriter *fw);
+
+	std::set<TextNode> texts; ///< Translated text nodes.
+};
+
+/** Class for describing a SHOP game block. */
+class SHOPBlock : public GameBlock {
+public:
+	SHOPBlock();
+	/* virtual */ ~SHOPBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int tile_width;       ///< Zoom-width of a tile of the surface.
+	int height;           ///< Height of the shop in voxels.
+	int flags;            ///< Byte with flags of the shop.
+	SpriteBlock *ne_view; ///< Unrotated view.
+	SpriteBlock *se_view; ///< Rotated 90 degrees.
+	SpriteBlock *sw_view; ///< Rotated 180 degrees.
+	SpriteBlock *nw_view; ///< Rotated 270 degrees.
+	Recolouring recol[3]; ///< Recolour definitions of the shop.
+	int item_cost[2];     ///< Cost of both items at sale.
+	int ownership_cost;   ///< Monthly cost of having the shop.
+	int opened_cost;      ///< Additional monthly cost of having an opened shop.
+	int item_type[2];     ///< Item type of both items at sale.
+	Strings *shop_text;   ///< Texts of the shop.
 };
 
 #endif

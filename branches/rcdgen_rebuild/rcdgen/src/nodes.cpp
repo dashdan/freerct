@@ -296,7 +296,7 @@ FUNDBlock::~FUNDBlock()
 
 Recolouring::Recolouring()
 {
-	this->orig = COLOUR_COUNT;
+	this->orig = COLOUR_COUNT; // Invalid recolour by default.
 	this->replace = 0;
 }
 
@@ -486,6 +486,178 @@ SUPPBlock::~SUPPBlock()
 	fb->SaveUInt16(this->tile_width);
 	fb->SaveUInt16(this->z_height);
 	for (int i = 0; i < SPP_COUNT; i++) fb->SaveUInt32(this->sprites[i]->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+/** Names of the known languages. */
+static const char *_languages[] = {
+	"",      // LNG_DEFAULT
+	"en_GB", // LNG_EN_GB
+	"nl_NL", // LNG_NL_NL
+};
+
+/**
+ * Get the index of a language from its name.
+ * @param lname Name of the language.
+ * @param line Line number stating the name.
+ * @return Index of the given language.
+ */
+int GetLanguageIndex(const char *lname, int line)
+{
+	assert(LNG_COUNT == sizeof(_languages) / sizeof(char *));
+	for (int i = 0; i < LNG_COUNT; i++) {
+		if (strcmp(_languages[i], lname) == 0) return i;
+	}
+	fprintf(stderr, "Error at line %d: Language \"%s\" is not known", line, lname);
+	exit(1);
+}
+
+TextNode::TextNode() : BlockNode()
+{
+	for (int i = 0; i < LNG_COUNT; i++) this->lines[i] = -1;
+}
+
+/* virtual */ TextNode::~TextNode()
+{
+}
+
+/**
+ * Compute the number of bytes needed to store this text node in an RCD file.
+ * @return Size needed to store this string.
+ */
+int TextNode::GetSize() const
+{
+	int length = 2 + 1 + this->name.size() + 1;
+	for (int i = 0; i < LNG_COUNT; i++) {
+		if (this->lines[i] < 0) continue;
+		length += 2 + (1 + strlen(_languages[i]) + 1) + this->texts[i].size() + 1;
+	}
+	return length;
+}
+
+/**
+ * Write the string and its translations into a file block.
+ * @param fb File block to write to.
+ */
+void TextNode::Write(FileBlock *fb) const
+{
+	int length = this->GetSize();
+	fb->SaveUInt16(length);
+	length -= 2;
+
+	assert(this->name.size() + 1 < 256);
+	fb->SaveUInt8(this->name.size() + 1);
+	fb->SaveBytes((uint8 *)this->name.c_str(), this->name.size());
+	fb->SaveUInt8(0);
+	length -= 1 + this->name.size() + 1;
+	for (int i = 1; i < LNG_COUNT; i++) {
+		if (this->lines[i] < 0) continue;
+		int lname_length = strlen(_languages[i]);
+		int lng_size = 2 + (1 + lname_length + 1) + this->texts[i].size() + 1;
+		fb->SaveUInt16(lng_size);
+		fb->SaveUInt8(lname_length + 1);
+		fb->SaveBytes((uint8 *)_languages[i], lname_length);
+		fb->SaveUInt8(0);
+		length -= 2 + 1 + lname_length + 1;
+		fb->SaveBytes((uint8 *)this->texts[i].c_str(), this->texts[i].size());
+		fb->SaveUInt8(0);
+		length -= this->texts[i].size() + 1;
+	}
+	assert(this->lines[0] >= 0);
+	int lng_size = 2 + (1 + 0 + 1) + this->texts[0].size() + 1;
+	fb->SaveUInt16(lng_size);
+	fb->SaveUInt8(1);
+	fb->SaveUInt8(0);
+	length -= 2 + 1 + 1;
+	fb->SaveBytes((uint8 *)this->texts[0].c_str(), this->texts[0].size());
+	fb->SaveUInt8(0);
+	length -= this->texts[0].size() + 1;
+	assert(length == 0);
+}
+
+Strings::Strings() : BlockNode()
+{
+}
+
+Strings::~Strings()
+{
+}
+
+/**
+ * Verify whether the strings are all valid.
+ * @param line Line number of the surrounding node (for error reporting).
+ */
+void Strings::CheckTranslations(int line)
+{
+	for (std::set<TextNode>::const_iterator iter = this->texts.begin(); iter != this->texts.end(); iter++) {
+		if ((*iter).lines[0] < 0) {
+			fprintf(stderr, "Error at line %d: String \"%s\" has no default language text", line, (*iter).name.c_str());
+			exit(1);
+		}
+	}
+}
+
+/**
+ * Write the strings in a 'TEXT' block.
+ * @param fw File to write to.
+ * @return Block number where the data was saved.
+ */
+int Strings::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	int length = 0;
+	for (std::set<TextNode>::const_iterator iter = this->texts.begin(); iter != this->texts.end(); iter++) {
+		length += (*iter).GetSize();
+	}
+	fb->StartSave("TEXT", 1, length);
+
+	for (std::set<TextNode>::const_iterator iter = this->texts.begin(); iter != this->texts.end(); iter++) {
+		(*iter).Write(fb);
+	}
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+SHOPBlock::SHOPBlock() : GameBlock("SHOP", 4)
+{
+	this->ne_view = NULL;
+	this->se_view = NULL;
+	this->sw_view = NULL;
+	this->nw_view = NULL;
+	this->shop_text = NULL;
+}
+
+/* virtual */ SHOPBlock::~SHOPBlock()
+{
+	delete this->ne_view;
+	delete this->se_view;
+	delete this->sw_view;
+	delete this->nw_view;
+	delete this->shop_text;
+}
+
+/* virtual */ int SHOPBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 66 - 12);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt8(this->height);
+	fb->SaveUInt8(this->flags);
+	fb->SaveUInt32(this->ne_view->Write(fw));
+	fb->SaveUInt32(this->se_view->Write(fw));
+	fb->SaveUInt32(this->sw_view->Write(fw));
+	fb->SaveUInt32(this->nw_view->Write(fw));
+	fb->SaveUInt32(this->recol[0].Encode());
+	fb->SaveUInt32(this->recol[1].Encode());
+	fb->SaveUInt32(this->recol[2].Encode());
+	fb->SaveUInt32(this->item_cost[0]);
+	fb->SaveUInt32(this->item_cost[1]);
+	fb->SaveUInt32(this->ownership_cost);
+	fb->SaveUInt32(this->opened_cost);
+	fb->SaveUInt8(this->item_type[0]);
+	fb->SaveUInt8(this->item_type[1]);
+	fb->SaveUInt32(this->shop_text->Write(fw));
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }

@@ -152,6 +152,7 @@ public:
 	long long GetNumber(int line, const char *node, const Symbol *symbols = NULL);
 	std::string GetString(int line, const char *node);
 	SpriteBlock *GetSprite(int line, const char *node);
+	Strings *GetStrings(int line, const char *node);
 
 	Expression *expr_value; ///< %Expression attached to it (if any).
 	BlockNode *node_value;  ///< Node attached to it (if any).
@@ -297,6 +298,23 @@ SpriteBlock *ValueInformation::GetSprite(int line, const char *node)
 }
 
 /**
+ * Get a set of strings from the given node value.
+ * @param line Line number of the node (for reporting errors).
+ * @param node %Name of the node.
+ * @return The set of strings.
+ */
+Strings *ValueInformation::GetStrings(int line, const char *node)
+{
+	Strings *st = dynamic_cast<Strings *>(this->node_value);
+	if (st != NULL) {
+		this->node_value = NULL;
+		return st;
+	}
+	fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a strings node\n", line, this->name.c_str(), node);
+	exit(1);
+}
+
+/**
  * Assign sub-nodes to the names of a 2D table.
  * @param bn Node to split in sub-nodes.
  * @param nt 2D name table.
@@ -339,6 +357,7 @@ public:
 	long long GetNumber(const char *fld_name, const Symbol *symbols = NULL);
 	std::string GetString(const char *fld_name);
 	SpriteBlock *GetSprite(const char *fld_name);
+	Strings *GetStrings(const char *fld_name);
 	void VerifyUsage();
 
 	int named_count;   ///< Number of found values with a name.
@@ -505,6 +524,8 @@ ValueInformation &Values::FindValue(const char *fld_name)
 
 /**
  * Get a numeric value from the named expression with the provided name.
+ * @param fld_name Name of the field to retrieve.
+ * @param symbols Optional set of identifiers recognized as numeric value.
  * @return The numeric value of the expression.
  */
 long long Values::GetNumber(const char *fld_name, const Symbol *symbols)
@@ -514,6 +535,7 @@ long long Values::GetNumber(const char *fld_name, const Symbol *symbols)
 
 /**
  * Get a string value from the named expression with the provided name.
+ * @param fld_name Name of the field to retrieve.
  * @return The value of the string.
  */
 std::string Values::GetString(const char *fld_name)
@@ -523,11 +545,22 @@ std::string Values::GetString(const char *fld_name)
 
 /**
  * Get a sprite (#SpriteBlock) from the named value with the provided name.
+ * @param fld_name Name of the field to retrieve.
  * @return The sprite.
  */
 SpriteBlock *Values::GetSprite(const char *fld_name)
 {
 	return FindValue(fld_name).GetSprite(this->node_line, this->node_name);
+}
+
+/**
+ * Get a set of strings from the named value with the provided name.
+ * @param fld_name Name of the field to retrieve.
+ * @return The set of strings.
+ */
+Strings *Values::GetStrings(const char *fld_name)
+{
+	return FindValue(fld_name).GetStrings(this->node_line, this->node_name);
 }
 
 /** Verify whether all named values were used in a node. */
@@ -1218,6 +1251,142 @@ static FrameData *ConvertFrameDataNode(NodeGroup *ng)
 	return fd;
 }
 
+/** Symbols of the shop game block. */
+static const Symbol _shop_symbols[] = {
+	{"ne_entrance", 0},
+	{"se_entrance", 1},
+	{"sw_entrance", 2},
+	{"nw_entrance", 3},
+	{"drink", 8},
+	{"ice_cream", 9},
+	{"non_salt_food", 16},
+	{"salt_food", 24},
+	{"umbrella", 32},
+	{"map", 40},
+	{NULL, 0},
+};
+
+/**
+ * Convert a node group to a SHOP game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created SHOP game block.
+ */
+static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "SHOP");
+	SHOPBlock *sb = new SHOPBlock;
+
+	Values vals("SHOP", ng->line);
+	vals.PrepareNamedValues(ng->values, true, true, _shop_symbols);
+
+	sb->tile_width = vals.GetNumber("tile_width");
+	sb->height = vals.GetNumber("height");
+	sb->flags = vals.GetNumber("flags");
+	sb->ne_view = vals.GetSprite("ne");
+	sb->se_view = vals.GetSprite("se");
+	sb->sw_view = vals.GetSprite("sw");
+	sb->nw_view = vals.GetSprite("nw");
+	sb->item_cost[0] = vals.GetNumber("cost_item1");
+	sb->item_cost[1] = vals.GetNumber("cost_item2");
+	sb->ownership_cost = vals.GetNumber("cost_ownership");
+	sb->opened_cost = vals.GetNumber("cost_opened");
+	sb->item_type[0] = vals.GetNumber("type_item1");
+	sb->item_type[1] = vals.GetNumber("type_item2");
+	sb->shop_text = vals.GetStrings("texts");
+	sb->shop_text->CheckTranslations(ng->line);
+
+	int free_recolour = 0;
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		Recolouring *rc = dynamic_cast<Recolouring *>(vi.node_value);
+		if (rc == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a \"recolour\" node\n", vi.line);
+			exit(1);
+		}
+		if (free_recolour >= 3) {
+			fprintf(stderr, "Error at line %d: Recolouring node cannot be stored (maximum is 3)\n", vi.line);
+			exit(1);
+		}
+		sb->recol[free_recolour] = *rc;
+		free_recolour++;
+		vi.used = true;
+	}
+
+	vals.VerifyUsage();
+	return sb;
+}
+
+/**
+ * Convert a 'strings' node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created 'strings' node.
+ */
+Strings *ConvertStringsNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "strings");
+	Strings *strs = new Strings;
+
+	Values vals("strings", ng->line);
+	vals.PrepareNamedValues(ng->values, false, true);
+
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		TextNode *tn = dynamic_cast<TextNode *>(vi.node_value);
+		if (tn == NULL) {
+			fprintf(stderr, "Error at line %d: Node is not a \"string\" node\n", vi.line);
+			exit(1);
+		}
+		std::set<TextNode>::iterator iter = strs->texts.find(*tn);
+		if (iter != strs->texts.end()) {
+			for (int j = 0; j < LNG_COUNT; j++) {
+				if (tn->lines[j] >= 0) {
+					if ((*iter).lines[j] >= 0) {
+						fprintf(stderr, "Error at line %d: \"string\" node conflicts with line %d\n",
+								tn->lines[j], (*iter).lines[j]);
+						exit(1);
+					}
+					(*iter).lines[j] = tn->lines[j];
+					(*iter).texts[j] = tn->texts[j];
+				}
+			}
+		} else {
+			strs->texts.insert(*tn);
+		}
+		vi.used = true;
+	}
+
+	vals.VerifyUsage();
+	return strs;
+}
+
+/**
+ * Convert a 'string' node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created 'string' node.
+ */
+TextNode *ConvertTextNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "string");
+	TextNode *tn = new TextNode;
+
+	Values vals("string", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	tn->name = vals.GetString("name");
+	ValueInformation &vi = vals.FindValue("lang");
+	int lng = GetLanguageIndex(vi.GetString(ng->line, "string").c_str(), vi.line);
+	vi = vals.FindValue("text");
+	tn->lines[lng] = vi.line;
+	tn->texts[lng] = vi.GetString(ng->line, "string");
+
+	vals.VerifyUsage();
+	return tn;
+}
+
+
+
 /**
  * Convert a node group.
  * @param ng Node group to convert.
@@ -1231,6 +1400,8 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "person_graphics") == 0) return ConvertPersonGraphicsNode(ng);
 	if (strcmp(ng->name, "recolour") == 0) return ConvertRecolourNode(ng);
 	if (strcmp(ng->name, "frame_data") == 0) return ConvertFrameDataNode(ng);
+	if (strcmp(ng->name, "strings") == 0) return ConvertStringsNode(ng);
+	if (strcmp(ng->name, "string") == 0) return ConvertTextNode(ng);
 
 	/* Game blocks. */
 	if (strcmp(ng->name, "TSEL") == 0) return ConvertTSELNode(ng);
@@ -1243,6 +1414,7 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "PATH") == 0) return ConvertPATHNode(ng);
 	if (strcmp(ng->name, "PLAT") == 0) return ConvertPLATNode(ng);
 	if (strcmp(ng->name, "SUPP") == 0) return ConvertSUPPNode(ng);
+	if (strcmp(ng->name, "SHOP") == 0) return ConvertSHOPNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);
