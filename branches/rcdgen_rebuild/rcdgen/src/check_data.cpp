@@ -1067,6 +1067,130 @@ static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
 }
 
 /**
+ * Convert a GBOR game block.
+ * @param ng Node group to convert.
+ * @return The created game block.
+ */
+static GBORBlock *ConvertGBORNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "GBOR");
+	GBORBlock *blk = new GBORBlock;
+
+	Values vals("GBOR", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	blk->widget_type = vals.GetNumber("widget_type");
+	blk->border_top = vals.GetNumber("border_top");
+	blk->border_left = vals.GetNumber("border_left");
+	blk->border_right = vals.GetNumber("border_right");
+	blk->border_bottom = vals.GetNumber("border_bottom");
+	blk->min_width = vals.GetNumber("min_width");
+	blk->min_height = vals.GetNumber("min_height");
+	blk->h_stepsize = vals.GetNumber("h_stepsize");
+	blk->v_stepsize = vals.GetNumber("v_stepsize");
+	blk->tl = vals.GetSprite("top_left");
+	blk->tm = vals.GetSprite("top_middle");
+	blk->tr = vals.GetSprite("top_right");
+	blk->ml = vals.GetSprite("middle_left");
+	blk->mm = vals.GetSprite("middle_middle");
+	blk->mr = vals.GetSprite("middle_right");
+	blk->bl = vals.GetSprite("bottom_left");
+	blk->bm = vals.GetSprite("bottom_middle");
+	blk->br = vals.GetSprite("bottom_right");
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+/**
+ * Convert a GCHK game block.
+ * @param ng Node group to convert.
+ * @return The created game block.
+ */
+static GCHKBlock *ConvertGCHKNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "GCHK");
+	GCHKBlock *blk = new GCHKBlock;
+
+	Values vals("GCHK", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	blk->widget_type = vals.GetNumber("widget_type");
+	blk->empty = vals.GetSprite("empty");
+	blk->filled = vals.GetSprite("filled");
+	blk->empty_pressed = vals.GetSprite("empty_pressed");
+	blk->filled_pressed = vals.GetSprite("filled_pressed");
+	blk->shaded_empty = vals.GetSprite("shaded_empty");
+	blk->shaded_filled = vals.GetSprite("shaded_filled");
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+/**
+ * Convert a GSLI game block.
+ * @param ng Node group to convert.
+ * @return The created game block.
+ */
+static GSLIBlock *ConvertGSLINode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "GSLI");
+	GSLIBlock *blk = new GSLIBlock;
+
+	Values vals("GSLI", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	blk->min_length = vals.GetNumber("min_length");
+	blk->step_size = vals.GetNumber("step_size");
+	blk->width = vals.GetNumber("width");
+	blk->widget_type = vals.GetNumber("widget_type");
+	blk->left = vals.GetSprite("left");
+	blk->middle = vals.GetSprite("middle");
+	blk->right = vals.GetSprite("right");
+	blk->slider = vals.GetSprite("slider");
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+/**
+ * Convert a GSCL game block.
+ * @param ng Node group to convert.
+ * @return The created game block.
+ */
+static GSCLBlock *ConvertGSCLNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "GSCL");
+	GSCLBlock *blk = new GSCLBlock;
+
+	Values vals("GSCL", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	blk->min_length = vals.GetNumber("min_length");
+	blk->step_back = vals.GetNumber("step_back");
+	blk->min_bar_length = vals.GetNumber("min_bar_length");
+	blk->bar_step = vals.GetNumber("bar_step");
+	blk->widget_type = vals.GetNumber("widget_type");
+	blk->left_button = vals.GetSprite("left_button");
+	blk->right_button = vals.GetSprite("right_button");
+	blk->left_pressed = vals.GetSprite("left_pressed");
+	blk->right_pressed = vals.GetSprite("right_pressed");
+	blk->left_bottom = vals.GetSprite("left_bottom");
+	blk->middle_bottom = vals.GetSprite("middle_bottom");
+	blk->right_bottom = vals.GetSprite("right_bottom");
+	blk->left_top = vals.GetSprite("left_top");
+	blk->middle_top = vals.GetSprite("middle_top");
+	blk->right_top = vals.GetSprite("right_top");
+	blk->left_top_pressed = vals.GetSprite("left_top_pressed");
+	blk->middle_top_pressed = vals.GetSprite("middle_top_pressed");
+	blk->right_top_pressed = vals.GetSprite("right_top_pressed");
+
+	vals.VerifyUsage();
+	return blk;
+}
+
+
+/**
  * Convert a node group to a sprite-sheet block.
  * @param ng Generic tree of nodes to convert.
  * @return The created sprite-sheet node.
@@ -1415,6 +1539,10 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "PLAT") == 0) return ConvertPLATNode(ng);
 	if (strcmp(ng->name, "SUPP") == 0) return ConvertSUPPNode(ng);
 	if (strcmp(ng->name, "SHOP") == 0) return ConvertSHOPNode(ng);
+	if (strcmp(ng->name, "GBOR") == 0) return ConvertGBORNode(ng);
+	if (strcmp(ng->name, "GCHK") == 0) return ConvertGCHKNode(ng);
+	if (strcmp(ng->name, "GSLI") == 0) return ConvertGSLINode(ng);
+	if (strcmp(ng->name, "GSCL") == 0) return ConvertGSCLNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);

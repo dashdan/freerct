@@ -661,3 +661,182 @@ SHOPBlock::SHOPBlock() : GameBlock("SHOP", 4)
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }
+
+GBORBlock::GBORBlock() : GameBlock("GBOR", 1)
+{
+	this->tl = NULL;
+	this->tm = NULL;
+	this->tr = NULL;
+	this->ml = NULL;
+	this->mm = NULL;
+	this->mr = NULL;
+	this->bl = NULL;
+	this->bm = NULL;
+	this->br = NULL;
+}
+
+/* virtual */ GBORBlock::~GBORBlock()
+{
+	delete this->tl;
+	delete this->tm;
+	delete this->tr;
+	delete this->ml;
+	delete this->mm;
+	delete this->mr;
+	delete this->bl;
+	delete this->bm;
+	delete this->br;
+}
+
+/* virtual */ int GBORBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 58 - 12);
+	fb->SaveUInt16(this->widget_type);
+	fb->SaveUInt8(this->border_top);
+	fb->SaveUInt8(this->border_left);
+	fb->SaveUInt8(this->border_right);
+	fb->SaveUInt8(this->border_bottom);
+	fb->SaveUInt8(this->min_width);
+	fb->SaveUInt8(this->min_height);
+	fb->SaveUInt8(this->h_stepsize);
+	fb->SaveUInt8(this->v_stepsize);
+	fb->SaveUInt32(this->tl->Write(fw));
+	fb->SaveUInt32(this->tm->Write(fw));
+	fb->SaveUInt32(this->tr->Write(fw));
+	fb->SaveUInt32(this->ml->Write(fw));
+	fb->SaveUInt32(this->mm->Write(fw));
+	fb->SaveUInt32(this->mr->Write(fw));
+	fb->SaveUInt32(this->bl->Write(fw));
+	fb->SaveUInt32(this->bm->Write(fw));
+	fb->SaveUInt32(this->br->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+GCHKBlock::GCHKBlock() : GameBlock("GCHK", 1)
+{
+	this->empty = NULL;
+	this->filled = NULL;
+	this->empty_pressed = NULL;
+	this->filled_pressed = NULL;
+	this->shaded_empty = NULL;
+	this->shaded_filled = NULL;
+}
+
+GCHKBlock::~GCHKBlock()
+{
+	delete this->empty;
+	delete this->filled;
+	delete this->empty_pressed;
+	delete this->filled_pressed;
+	delete this->shaded_empty;
+	delete this->shaded_filled;
+}
+
+/* virtual */ int GCHKBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 38 - 12);
+	fb->SaveUInt16(this->widget_type);
+	fb->SaveUInt32(this->empty->Write(fw));
+	fb->SaveUInt32(this->filled->Write(fw));
+	fb->SaveUInt32(this->empty_pressed->Write(fw));
+	fb->SaveUInt32(this->filled_pressed->Write(fw));
+	fb->SaveUInt32(this->shaded_empty->Write(fw));
+	fb->SaveUInt32(this->shaded_filled->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+GSLIBlock::GSLIBlock() : GameBlock("GSLI", 1)
+{
+	this->left = NULL;
+	this->middle = NULL;
+	this->right = NULL;
+	this->slider = NULL;
+}
+
+GSLIBlock::~GSLIBlock()
+{
+	delete this->left;
+	delete this->middle;
+	delete this->right;
+	delete this->slider;
+}
+
+/* virtual */ int GSLIBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 33 - 12);
+	fb->SaveUInt8(this->min_length);
+	fb->SaveUInt8(this->step_size);
+	fb->SaveUInt8(this->width);
+	fb->SaveUInt16(this->widget_type);
+	fb->SaveUInt32(this->left->Write(fw));
+	fb->SaveUInt32(this->middle->Write(fw));
+	fb->SaveUInt32(this->right->Write(fw));
+	fb->SaveUInt32(this->slider->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+GSCLBlock::GSCLBlock() : GameBlock("GSCL", 1)
+{
+	this->left_button = NULL;
+	this->right_button = NULL;
+	this->left_pressed = NULL;
+	this->right_pressed = NULL;
+	this->left_bottom = NULL;
+	this->middle_bottom = NULL;
+	this->right_bottom = NULL;
+	this->left_top = NULL;
+	this->middle_top = NULL;
+	this->right_top = NULL;
+	this->left_top_pressed = NULL;
+	this->middle_top_pressed = NULL;
+	this->right_top_pressed = NULL;
+}
+
+GSCLBlock::~GSCLBlock()
+{
+	delete this->left_button;
+	delete this->right_button;
+	delete this->left_pressed;
+	delete this->right_pressed;
+	delete this->left_bottom;
+	delete this->middle_bottom;
+	delete this->right_bottom;
+	delete this->left_top;
+	delete this->middle_top;
+	delete this->right_top;
+	delete this->left_top_pressed;
+	delete this->middle_top_pressed;
+	delete this->right_top_pressed;
+}
+
+/* virtual */ int GSCLBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 70 - 12);
+	fb->SaveUInt8(this->min_length);
+	fb->SaveUInt8(this->step_back);
+	fb->SaveUInt8(this->min_bar_length);
+	fb->SaveUInt8(this->bar_step);
+	fb->SaveUInt16(this->widget_type);
+	fb->SaveUInt32(this->left_button->Write(fw));
+	fb->SaveUInt32(this->right_button->Write(fw));
+	fb->SaveUInt32(this->left_pressed->Write(fw));
+	fb->SaveUInt32(this->right_pressed->Write(fw));
+	fb->SaveUInt32(this->left_bottom->Write(fw));
+	fb->SaveUInt32(this->middle_bottom->Write(fw));
+	fb->SaveUInt32(this->right_bottom->Write(fw));
+	fb->SaveUInt32(this->left_top->Write(fw));
+	fb->SaveUInt32(this->middle_top->Write(fw));
+	fb->SaveUInt32(this->right_top->Write(fw));
+	fb->SaveUInt32(this->left_top_pressed->Write(fw));
+	fb->SaveUInt32(this->middle_top_pressed->Write(fw));
+	fb->SaveUInt32(this->right_top_pressed->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}

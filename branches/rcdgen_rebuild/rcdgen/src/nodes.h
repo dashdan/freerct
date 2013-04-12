@@ -512,5 +512,92 @@ public:
 	Strings *shop_text;   ///< Texts of the shop.
 };
 
+class GBORBlock : public GameBlock {
+public:
+	GBORBlock();
+	/* virtual */ ~GBORBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int widget_type;   ///< Widget type.
+	int border_top;    ///< Border width of the top edge.
+	int border_left;   ///< Border width of the left edge.
+	int border_right;  ///< Border width of the right edge.
+	int border_bottom; ///< Border width of the bottom edge.
+	int min_width;     ///< Minimal width of the border.
+	int min_height;    ///< Minimal height of the border.
+	int h_stepsize;    ///< Horizontal stepsize of the border.
+	int v_stepsize;    ///< Vertical stepsize of the border.
+	SpriteBlock *tl;   ///< Top-left sprite.
+	SpriteBlock *tm;   ///< Top-middle sprite.
+	SpriteBlock *tr;   ///< Top-right sprite.
+	SpriteBlock *ml;   ///< Left sprite.
+	SpriteBlock *mm;   ///< Middle sprite.
+	SpriteBlock *mr;   ///< Right sprite.
+	SpriteBlock *bl;   ///< Bottom-left sprite.
+	SpriteBlock *bm;   ///< Bottom-middle sprite.
+	SpriteBlock *br;   ///< Bottom-right sprite.
+};
+
+class GCHKBlock : public GameBlock {
+public:
+	GCHKBlock();
+	/* virtual */ ~GCHKBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int widget_type;             ///< Widget type.
+	SpriteBlock *empty;          ///< Empty sprite.
+	SpriteBlock *filled;         ///< Filled.
+	SpriteBlock *empty_pressed;  ///< Empty pressed.
+	SpriteBlock *filled_pressed; ///< Filled pressed.
+	SpriteBlock *shaded_empty;   ///< Shaded empty button.
+	SpriteBlock *shaded_filled;  ///< Shaded filled button.
+};
+
+class GSLIBlock : public GameBlock {
+public:
+	GSLIBlock();
+	/* virtual */ ~GSLIBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int min_length;      ///< Minimal length of the bar.
+	int step_size;       ///< Stepsize of the bar.
+	int width;           ///< Width of the slider button.
+	int widget_type;     ///< Widget type.
+	SpriteBlock *left;   ///< Left sprite.
+	SpriteBlock *middle; ///< Middle sprite.
+	SpriteBlock *right;  ///< Right sprite.
+	SpriteBlock *slider; ///< Slider button.
+};
+
+class GSCLBlock : public GameBlock {
+public:
+	GSCLBlock();
+	/* virtual */ ~GSCLBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int min_length;     ///< Minimal length scrollbar.
+	int step_back;      ///< Stepsize of background.
+	int min_bar_length; ///< Minimal length bar.
+	int bar_step;       ///< Stepsize of bar.
+	int widget_type;    ///< Widget type.
+	SpriteBlock *left_button;        ///< Left/up button.
+	SpriteBlock *right_button;       ///< Right/down button.
+	SpriteBlock *left_pressed;       ///< Left/up pressed button.
+	SpriteBlock *right_pressed;      ///< Right/down pressed button.
+	SpriteBlock *left_bottom;        ///< Left/top bar bottom (the background).
+	SpriteBlock *middle_bottom;      ///< Middle bar bottom (the background).
+	SpriteBlock *right_bottom;       ///< Right/down bar bottom (the background).
+	SpriteBlock *left_top;           ///< Left/top bar top.
+	SpriteBlock *middle_top;         ///< Middle bar top.
+	SpriteBlock *right_top;          ///< Right/down bar top.
+	SpriteBlock *left_top_pressed;   ///< Left/top pressed bar top.
+	SpriteBlock *middle_top_pressed; ///< Middle pressed bar top.
+	SpriteBlock *right_top_pressed;  ///< Right/down pressed bar top.
+};
+
 #endif
 
