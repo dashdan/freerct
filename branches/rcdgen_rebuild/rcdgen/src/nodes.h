@@ -483,7 +483,7 @@ public:
 	Strings();
 	/* virtual */ ~Strings();
 
-	void CheckTranslations(int line);
+	void CheckTranslations(const char *names[], int name_count, int line);
 	int Write(FileWriter *fw);
 
 	std::set<TextNode> texts; ///< Translated text nodes.

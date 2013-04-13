@@ -586,13 +586,26 @@ Strings::~Strings()
 
 /**
  * Verify whether the strings are all valid.
+ * @param names Expected string names.
+ * @param name_count Number of names in \a names.
  * @param line Line number of the surrounding node (for error reporting).
  */
-void Strings::CheckTranslations(int line)
+void Strings::CheckTranslations(const char *names[], int name_count, int line)
 {
+	/* Check that all necessary strings exist. */
+	TextNode tn;
+	for (int i = 0; i < name_count; i++) {
+		tn.name = names[i];
+		std::set<TextNode>::iterator iter = this->texts.find(tn);
+		if (iter == this->texts.end()) {
+			fprintf(stderr, "Error at line %d: String \"%s\" is not defined\n", line, names[i]);
+			exit(1);
+		}
+	}
+	/* Check that all strings have a default text. */
 	for (std::set<TextNode>::const_iterator iter = this->texts.begin(); iter != this->texts.end(); iter++) {
 		if ((*iter).lines[0] < 0) {
-			fprintf(stderr, "Error at line %d: String \"%s\" has no default language text", line, (*iter).name.c_str());
+			fprintf(stderr, "Error at line %d: String \"%s\" has no default language text\n", line, (*iter).name.c_str());
 			exit(1);
 		}
 	}

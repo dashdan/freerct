@@ -15,6 +15,7 @@
 #include "ast.h"
 #include "check_data.h"
 #include "nodes.h"
+#include "string_names.h"
 
 static BlockNode *ConvertNodeGroup(NodeGroup *ng);
 
@@ -1417,7 +1418,7 @@ static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
 	sb->item_type[0] = vals.GetNumber("type_item1");
 	sb->item_type[1] = vals.GetNumber("type_item2");
 	sb->shop_text = vals.GetStrings("texts");
-	sb->shop_text->CheckTranslations(ng->line);
+	sb->shop_text->CheckTranslations(_shops_string_names, lengthof(_shops_string_names), ng->line);
 
 	int free_recolour = 0;
 	for (int i = 0; i < vals.unnamed_count; i++) {
