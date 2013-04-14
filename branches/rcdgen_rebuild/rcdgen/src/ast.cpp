@@ -526,6 +526,7 @@ void NamedValueList::HandleImports()
 			}
 			nv->values.clear();
 			delete nv;
+			delete *iter; // Is not copied into 'values' and will get lost below.
 		} else {
 			(*iter)->HandleImports();
 			values.push_back(*iter);
