@@ -30,7 +30,6 @@ class ExpressionList;
 class NameTable;
 class NameRow;
 class Group;
-class GroupList;
 class NamedValue;
 class NamedValueList;
 
@@ -50,7 +49,6 @@ union YyStruct {
 	NameTable *iden_table;    ///< 2D table with identifiers to pass on.
 	NameRow *iden_row;        ///< Row of identifiers to pass on.
 	Group *group;             ///< %Group to pass on.
-	GroupList *groups;        ///< Sequence of groups to pass on.
 	NamedValue *value;        ///< A named value to pass on.
 	NamedValueList *values;   ///< Sequence of named values to pass on.
 };
@@ -58,6 +56,6 @@ union YyStruct {
 /** Macro defining the interface type between the scanner and parser. See also flex(1). */
 #define YYSTYPE YyStruct
 
-extern GroupList *_parsed_data;
+extern NamedValueList *_parsed_data;
 
 #endif

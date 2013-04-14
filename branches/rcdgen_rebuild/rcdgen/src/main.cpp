@@ -11,8 +11,8 @@
 
 #include "stdafx.h"
 #include "scanner_funcs.h"
+#include "ast.h"
 #include "nodes.h"
-#include "check_data.h"
 #include "fileio.h"
 
 /**
@@ -57,6 +57,7 @@ int main(int argc, const char *argv[])
 
 	/* Phase 2: Check and simplify the loaded input. */
 	FileNodeList *file_nodes = CheckTree(_parsed_data);
+	delete _parsed_data;
 
 	/* Phase 3: Construct output files. */
 	for (std::list<FileNode *>::iterator iter = file_nodes->files.begin(); iter != file_nodes->files.end(); iter++) {

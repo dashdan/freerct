@@ -12,7 +12,7 @@
 #include "scanner_funcs.h"
 #include "ast.h"
 
-GroupList *_parsed_data = NULL; ///< Result of parsing the input file.
+NamedValueList *_parsed_data = NULL; ///< Result of parsing the input file.
 %}
 
 %token PAR_OPEN PAR_CLOSE CURLY_OPEN CURLY_CLOSE
@@ -26,7 +26,6 @@ GroupList *_parsed_data = NULL; ///< Result of parsing the input file.
 %type<iden_table> IdentifierRows IdentifierTable
 %type<iden_row> IdentifierRow
 %type<group> Group
-%type<groups> GroupList
 %type<value> NamedValue
 %type<values> NamedValueList
 
@@ -34,7 +33,7 @@ GroupList *_parsed_data = NULL; ///< Result of parsing the input file.
 
 %%
 
-Program : GroupList {
+Program : NamedValueList {
 	_parsed_data = $1;
 }
         ;
@@ -164,18 +163,6 @@ Group : IDENTIFIER PAR_OPEN ExpressionList PAR_CLOSE CURLY_OPEN NamedValueList C
 	$$ = new NodeGroup($1.line, $1.value, $3, $6);
 }
       ;
-
-GroupList : Group {
-	$$ = new GroupList;
-	$$->groups.push_back($1);
-}
-          ;
-
-GroupList : GroupList Group {
-	$$ = $1;
-	$$->groups.push_back($2);
-}
-          ;
 
 %%
 

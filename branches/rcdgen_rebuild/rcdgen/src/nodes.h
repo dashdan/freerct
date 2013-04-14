@@ -19,6 +19,7 @@
 
 class FileWriter;
 class FileBlock;
+class NamedValueList;
 
 /** Base class for all nodes. */
 class BlockNode {
@@ -598,6 +599,8 @@ public:
 	SpriteBlock *middle_top_pressed; ///< Middle pressed bar top.
 	SpriteBlock *right_top_pressed;  ///< Right/down pressed bar top.
 };
+
+FileNodeList *CheckTree(NamedValueList *values);
 
 #endif
 

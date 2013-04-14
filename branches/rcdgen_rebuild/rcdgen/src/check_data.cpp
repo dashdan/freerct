@@ -13,7 +13,6 @@
 #include <map>
 #include <string>
 #include "ast.h"
-#include "check_data.h"
 #include "nodes.h"
 #include "string_names.h"
 
@@ -971,6 +970,7 @@ static PRSGBlock *ConvertPRSGNode(NodeGroup *ng)
 			exit(1);
 		}
 		blk->person_graphics.push_back(*pg);
+		vi.node_value = NULL;
 		if (blk->person_graphics.size() > 255) {
 			fprintf(stderr, "Error at line %d: Too many person graphics in a PRSG block\n", vi.line);
 			exit(1);
@@ -1018,6 +1018,7 @@ static ANIMBlock *ConvertANIMNode(NodeGroup *ng)
 			exit(1);
 		}
 		blk->frames.push_back(*fd);
+		vi.node_value = NULL;
 		if (blk->frames.size() > 0xFFFF) {
 			fprintf(stderr, "Error at line %d: Too many frames in an ANIM block\n", vi.line);
 			exit(1);
@@ -1552,25 +1553,30 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 
 /**
  * Check and convert the tree to nodes.
- * @param root Root node of the tree.
+ * @param values Root node of the tree.
  * @return The converted and checked sequence of file data to write.
  */
-FileNodeList *CheckTree(GroupList *root)
+FileNodeList *CheckTree(NamedValueList *values)
 {
 	assert(sizeof(_surface_sprite) / sizeof(_surface_sprite[0]) == SURFACE_COUNT);
 	assert(sizeof(_foundation_sprite) / sizeof(_foundation_sprite[0]) == FOUNDATION_COUNT);
 
 	FileNodeList *file_nodes = new FileNodeList;
-	for (std::list<Group *>::iterator iter = root->groups.begin(); iter != root->groups.end(); iter++) {
-		NodeGroup *ng = (*iter)->CastToNodeGroup();
-		assert(ng != NULL); // A GroupList can only have node groups.
-		BlockNode *bn = ConvertNodeGroup(ng);
-		FileNode *fn = dynamic_cast<FileNode *>(bn);
+	Values vals("root", 1);
+	vals.PrepareNamedValues(values, false, true);
+
+	for (int i = 0; i < vals.unnamed_count; i++) {
+		ValueInformation &vi = vals.unnamed_values[i];
+		if (vi.used) continue;
+		FileNode *fn = dynamic_cast<FileNode *>(vi.node_value);
 		if (fn == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a file node\n", ng->GetLine());
+			fprintf(stderr, "Error at line %d: Node is not a file node\n", vi.line);
 			exit(1);
 		}
 		file_nodes->files.push_back(fn);
+		vi.node_value = NULL;
+		vi.used = true;
 	}
+	vals.VerifyUsage();
 	return file_nodes;
 }
