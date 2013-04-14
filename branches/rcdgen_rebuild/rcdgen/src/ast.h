@@ -184,6 +184,8 @@ public:
 	/* virtual */ int GetLine() const;
 	/* virtual */ NodeGroup *CastToNodeGroup();
 
+	void HandleImports();
+
 	int line;               ///< Line number of the node name.
 	char *name;             ///< Node name itself.
 	ExpressionList *exprs;  ///< Parameters of the node.
@@ -202,14 +204,36 @@ public:
 	Expression *expr; ///< Expression to store.
 };
 
+/** Base class for named values. */
+class BaseNamedValue {
+public:
+	BaseNamedValue();
+	virtual ~BaseNamedValue();
+
+	virtual void HandleImports() = 0;
+};
+
 /** A value with a name. */
-class NamedValue {
+class NamedValue : public BaseNamedValue {
 public:
 	NamedValue(Name *name, Group *group);
-	~NamedValue();
+	/* virtual */ ~NamedValue();
+
+	/* virtual */ void HandleImports();
 
 	Name *name;   ///< %Name part, may be \c NULL.
 	Group *group; ///< Value part.
+};
+
+class ImportValue : public BaseNamedValue {
+public:
+	ImportValue(int line, char *filename);
+	/* virtual */ ~ImportValue();
+
+	/* virtual */ void HandleImports();
+
+	int line;       ///< Line number of the import.
+	char *filename; ///< Name of the file to import.
 };
 
 /** Sequence of named values. */
@@ -218,8 +242,12 @@ public:
 	NamedValueList();
 	~NamedValueList();
 
-	std::list<NamedValue *> values; ///< Named values in the sequence.
+	void HandleImports();
+
+	std::list<BaseNamedValue *> values; ///< Named values in the sequence.
 };
+
+NamedValueList *LoadFile(const char *filename, int line = 0);
 
 #endif
 

@@ -121,8 +121,9 @@ static FileNode *ConvertFileNode(NodeGroup *ng)
 	char *filename = GetString(argument, 0, "file");
 	FileNode *fn = new FileNode(filename);
 
-	for (std::list<NamedValue *>::iterator iter = ng->values->values.begin(); iter != ng->values->values.end(); iter++) {
-		NamedValue *nv = *iter;
+	for (std::list<BaseNamedValue *>::iterator iter = ng->values->values.begin(); iter != ng->values->values.end(); iter++) {
+		NamedValue *nv = dynamic_cast<NamedValue *>(*iter);
+		assert(nv != NULL); // Should always hold, as ImportValue has been eliminated.
 		if (nv->name != NULL) fprintf(stderr, "Warning at line %d: Unexpected name encountered, ignoring\n", nv->name->GetLine());
 		NodeGroup *ng = nv->group->CastToNodeGroup();
 		if (ng == NULL) {
@@ -421,19 +422,21 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 	/* Count number of named and unnamed values. */
 	int named_count = 0;
 	int unnamed_count = 0;
-	for (std::list<NamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
-		if ((*iter)->name == NULL) { // Unnamed value.
+	for (std::list<BaseNamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
+		NamedValue *nv = dynamic_cast<NamedValue *>(*iter);
+		assert(nv != NULL); // Should always hold, as ImportValue has been eliminated.
+		if (nv->name == NULL) { // Unnamed value.
 			if (!allow_unnamed) {
-				fprintf(stderr, "Error at line %d: Value should have a name\n", (*iter)->group->GetLine());
+				fprintf(stderr, "Error at line %d: Value should have a name\n", nv->group->GetLine());
 				exit(1);
 			}
 			unnamed_count++;
 		} else {
 			if (!allow_named) {
-				fprintf(stderr, "Error at line %d: Value should not have a name\n", (*iter)->group->GetLine());
+				fprintf(stderr, "Error at line %d: Value should not have a name\n", nv->group->GetLine());
 				exit(1);
 			}
-			int count = (*iter)->name->GetNameCount();
+			int count = nv->name->GetNameCount();
 			named_count += count;
 		}
 	}
@@ -442,9 +445,11 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 
 	named_count = 0;
 	unnamed_count = 0;
-	for (std::list<NamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
-		if ((*iter)->name == NULL) { // Unnamed value.
-			NodeGroup *ng = (*iter)->group->CastToNodeGroup();
+	for (std::list<BaseNamedValue *>::iterator iter = values->values.begin(); iter != values->values.end(); iter++) {
+		NamedValue *nv = dynamic_cast<NamedValue *>(*iter);
+		assert(nv != NULL); // Should always hold, as ImportValue has been eliminated.
+		if (nv->name == NULL) { // Unnamed value.
+			NodeGroup *ng = nv->group->CastToNodeGroup();
 			if (ng != NULL) {
 				this->unnamed_values[unnamed_count].expr_value = NULL;
 				this->unnamed_values[unnamed_count].node_value = ConvertNodeGroup(ng);
@@ -454,7 +459,7 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 				unnamed_count++;
 				continue;
 			}
-			ExpressionGroup *eg = (*iter)->group->CastToExpressionGroup();
+			ExpressionGroup *eg = nv->group->CastToExpressionGroup();
 			assert(eg != NULL);
 			this->unnamed_values[unnamed_count].expr_value = eg->expr->Evaluate(symbols);
 			this->unnamed_values[unnamed_count].node_value = NULL;
@@ -464,10 +469,10 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 			unnamed_count++;
 			continue;
 		} else { // Named value.
-			NodeGroup *ng = (*iter)->group->CastToNodeGroup();
+			NodeGroup *ng = nv->group->CastToNodeGroup();
 			if (ng != NULL) {
 				BlockNode *bn = ConvertNodeGroup(ng);
-				SingleName *sn = dynamic_cast<SingleName *>((*iter)->name);
+				SingleName *sn = dynamic_cast<SingleName *>(nv->name);
 				if (sn != NULL) {
 					this->named_values[named_count].expr_value = NULL;
 					this->named_values[named_count].node_value = bn;
@@ -477,18 +482,18 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 					named_count++;
 					continue;
 				}
-				NameTable *nt = dynamic_cast<NameTable *>((*iter)->name);
+				NameTable *nt = dynamic_cast<NameTable *>(nv->name);
 				assert(nt != NULL);
 				AssignNames(bn, nt, this->named_values, &named_count);
 				continue;
 			}
 
 			/* Expression group. */
-			ExpressionGroup *eg = (*iter)->group->CastToExpressionGroup();
+			ExpressionGroup *eg = nv->group->CastToExpressionGroup();
 			assert(eg != NULL);
-			SingleName *sn = dynamic_cast<SingleName *>((*iter)->name);
+			SingleName *sn = dynamic_cast<SingleName *>(nv->name);
 			if (sn == NULL) {
-				fprintf(stderr, "Error at line %d: Expression must have a single name\n", (*iter)->name->GetLine());
+				fprintf(stderr, "Error at line %d: Expression must have a single name\n", nv->name->GetLine());
 				exit(1);
 			}
 			this->named_values[named_count].expr_value = eg->expr->Evaluate(symbols);

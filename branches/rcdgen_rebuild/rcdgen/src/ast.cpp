@@ -11,6 +11,7 @@
 
 #include "stdafx.h"
 #include "ast.h"
+#include "scanner_funcs.h"
 
 ExpressionList::ExpressionList()
 {
@@ -423,6 +424,11 @@ NodeGroup::~NodeGroup()
 	return this;
 }
 
+void NodeGroup::HandleImports()
+{
+	this->values->HandleImports();
+}
+
 /**
  * Wrap an expression in a group.
  * @param expr %Expression to wrap.
@@ -447,12 +453,20 @@ ExpressionGroup::~ExpressionGroup()
 	return this;
 }
 
+BaseNamedValue::BaseNamedValue()
+{
+}
+
+BaseNamedValue::~BaseNamedValue()
+{
+}
+
 /**
  * Construct a value with a name.
  * @param name (may be \c NULL).
  * @param group %Group value.
  */
-NamedValue::NamedValue(Name *name, Group *group)
+NamedValue::NamedValue(Name *name, Group *group) : BaseNamedValue()
 {
 	this->name = name;
 	this->group = group;
@@ -464,14 +478,116 @@ NamedValue::~NamedValue()
 	delete this->group;
 }
 
+void NamedValue::HandleImports()
+{
+	NodeGroup *ng = this->group->CastToNodeGroup();
+	if (ng != NULL) ng->HandleImports();
+}
+
+ImportValue::ImportValue(int line, char *filename) : BaseNamedValue()
+{
+	this->line = line;
+	this->filename = filename;
+}
+
+ImportValue::~ImportValue()
+{
+	free(this->filename);
+}
+
+void ImportValue::HandleImports()
+{
+	/* Do nothing, the surrounding NamedValueList handles this import. */
+}
+
 NamedValueList::NamedValueList()
 {
 }
 
 NamedValueList::~NamedValueList()
 {
-	for (std::list<NamedValue *>::iterator iter = this->values.begin(); iter != this->values.end(); iter++) {
+	for (std::list<BaseNamedValue *>::iterator iter = this->values.begin(); iter != this->values.end(); iter++) {
 		delete (*iter);
 	}
 }
 
+void NamedValueList::HandleImports()
+{
+	bool has_import = false;
+	std::list<BaseNamedValue *> values;
+
+	for (std::list<BaseNamedValue *>::iterator iter = this->values.begin(); iter != this->values.end(); iter++) {
+		ImportValue *iv = dynamic_cast<ImportValue *>(*iter);
+		if (iv != NULL) {
+			has_import = true;
+			NamedValueList *nv = LoadFile(iv->filename, iv->line);
+			for (std::list<BaseNamedValue *>::iterator iter2 = nv->values.begin(); iter2 != nv->values.end(); iter2++) {
+				values.push_back(*iter2);
+			}
+			nv->values.clear();
+			delete nv;
+		} else {
+			(*iter)->HandleImports();
+			values.push_back(*iter);
+		}
+	}
+	if (has_import) this->values = values;
+}
+
+
+/**
+ * Load a file, and parse the contents.
+ * @param filename Name of the file to load. \c NULL means to read \c stdin.
+ * @param line Line number of the current file.
+ * @return The parsed node tree.
+ */
+NamedValueList *LoadFile(const char *filename, int line)
+{
+	static int nest_level = 0;
+	static const char *include_cache[10];
+	static int line_number_cache[10];
+
+	/* Check for too many nested include levels. */
+	if (nest_level > 0) line_number_cache[nest_level - 1] = line;
+
+	if (nest_level >= (int)lengthof(include_cache)) {
+		fprintf(stderr, "Error: Too many nested file imports\n");
+		fprintf(stderr, "       While importing \"%s\"\n", filename);
+		for (int i = nest_level; i >= 0; i--) {
+			fprintf(stderr, "       from \"%s\" at line %d\n", include_cache[i], line_number_cache[i]);
+		}
+		exit(1);
+	}
+
+	include_cache[nest_level] = filename;
+	nest_level++;
+
+	/* Parse the input. */
+	FILE *infile = NULL;
+	if (filename != NULL) {
+		infile = fopen(filename, "rb");
+		if (infile == NULL) {
+			fprintf(stderr, "Error: Could not open file \"%s\"\n", filename);
+			exit(1);
+		}
+	}
+	_parsed_data = NULL;
+	SetupScanner(infile);
+	yyparse();
+
+	if (infile != NULL) fclose(infile);
+
+	if (_parsed_data == NULL) {
+		fprintf(stderr, "Parsing of the input file did not give a result\n");
+		exit(1);
+	}
+
+	/* Process imports. */
+	NamedValueList *nvs = _parsed_data;
+	nvs->HandleImports(); // Recursively calls this function, so _parsed_data is not safe.
+
+	/* Restore to pre-call state. */
+	include_cache[nest_level] = NULL;
+	nest_level--;
+	return nvs;
+}

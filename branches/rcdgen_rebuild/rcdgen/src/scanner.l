@@ -99,6 +99,11 @@ int string_line; ///< Starting line of the string.
 	return BITSET_KW;
 }
 
+"import" {
+	yylval.line = line;
+	return IMPORT_KW;
+}
+
 [A-Za-z_][A-Za-z0-9#_]* {
 	yylval.chars.line = line;
 	int length = strlen(yytext);
@@ -157,3 +162,13 @@ int string_line; ///< Starting line of the string.
 }
 
 %%
+
+/**
+ * Setup the scanner for the new file.
+ * @param new_file New input stream to switch to.
+ */
+void SetupScanner(FILE *new_file)
+{
+	yyrestart(new_file);
+	BEGIN(INITIAL);
+}

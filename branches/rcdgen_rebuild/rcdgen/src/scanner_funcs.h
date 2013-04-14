@@ -30,7 +30,7 @@ class ExpressionList;
 class NameTable;
 class NameRow;
 class Group;
-class NamedValue;
+class BaseNamedValue;
 class NamedValueList;
 
 /** Structure to communicate values from the scanner to the parser. */
@@ -49,7 +49,7 @@ union YyStruct {
 	NameTable *iden_table;    ///< 2D table with identifiers to pass on.
 	NameRow *iden_row;        ///< Row of identifiers to pass on.
 	Group *group;             ///< %Group to pass on.
-	NamedValue *value;        ///< A named value to pass on.
+	BaseNamedValue *value;    ///< A named value to pass on.
 	NamedValueList *values;   ///< Sequence of named values to pass on.
 };
 
@@ -57,5 +57,7 @@ union YyStruct {
 #define YYSTYPE YyStruct
 
 extern NamedValueList *_parsed_data;
+
+void SetupScanner(FILE *new_file);
 
 #endif

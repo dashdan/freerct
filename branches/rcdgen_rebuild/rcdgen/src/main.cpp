@@ -33,31 +33,12 @@ int main(int argc, const char *argv[])
 		exit(1);
 	}
 
-	FILE *infile = NULL;
-	if (argc == 2) {
-		infile = fopen(argv[1], "rb");
-		if (infile == NULL) {
-			printf("Error: Could not open file \"%s\"\n", argv[1]);
-			exit(1);
-		}
-	}
-
 	/* Phase 1: Parse the input file. */
-	if (infile != NULL) yyin = infile;
-
-	_parsed_data = NULL;
-	yyparse();
-
-	if (infile != NULL) fclose(infile);
-
-	if (_parsed_data == NULL) {
-		fprintf(stderr, "Parsing of the input file failed");
-		exit(1);
-	}
+	NamedValueList *nvs = LoadFile((argc == 2) ? argv[1] : NULL);
 
 	/* Phase 2: Check and simplify the loaded input. */
-	FileNodeList *file_nodes = CheckTree(_parsed_data);
-	delete _parsed_data;
+	FileNodeList *file_nodes = CheckTree(nvs);
+	delete nvs;
 
 	/* Phase 3: Construct output files. */
 	for (std::list<FileNode *>::iterator iter = file_nodes->files.begin(); iter != file_nodes->files.end(); iter++) {

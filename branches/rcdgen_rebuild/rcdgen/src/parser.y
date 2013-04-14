@@ -17,7 +17,7 @@ NamedValueList *_parsed_data = NULL; ///< Result of parsing the input file.
 
 %token PAR_OPEN PAR_CLOSE CURLY_OPEN CURLY_CLOSE
 %token COLON PIPE SEMICOLON COMMA
-%token<line> MINUS BITSET_KW
+%token<line> MINUS BITSET_KW IMPORT_KW
 %token<chars> STRING
 %token<number> NUMBER
 %token<chars> IDENTIFIER
@@ -120,6 +120,11 @@ NamedValue : IDENTIFIER COLON Expression SEMICOLON {
 
 NamedValue : IdentifierTable COLON Group {
 	$$ = new NamedValue($1, $3);
+}
+           ;
+
+NamedValue : IMPORT_KW STRING SEMICOLON {
+	$$ = new ImportValue($1, $2.value);
 }
            ;
 
