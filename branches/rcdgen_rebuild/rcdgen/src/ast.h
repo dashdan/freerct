@@ -202,15 +202,6 @@ public:
 	Expression *expr; ///< Expression to store.
 };
 
-/** Sequence of groups. */
-class GroupList {
-public:
-	GroupList();
-	~GroupList();
-
-	std::list<Group *> groups; ///< Groups of the sequence.
-};
-
 /** A value with a name. */
 class NamedValue {
 public:

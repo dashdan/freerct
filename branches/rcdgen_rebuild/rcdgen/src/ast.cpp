@@ -447,17 +447,6 @@ ExpressionGroup::~ExpressionGroup()
 	return this;
 }
 
-GroupList::GroupList()
-{
-}
-
-GroupList::~GroupList()
-{
-	for (std::list<Group *>::iterator iter = this->groups.begin(); iter != this->groups.end(); iter++) {
-		delete (*iter);
-	}
-}
-
 /**
  * Construct a value with a name.
  * @param name (may be \c NULL).
