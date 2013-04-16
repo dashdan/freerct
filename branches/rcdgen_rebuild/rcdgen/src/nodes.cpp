@@ -853,3 +853,90 @@ GSCLBlock::~GSCLBlock()
 	fb->CheckEndSave();
 	return fw->AddBlock(fb);
 }
+
+BDIRBlock::BDIRBlock() : GameBlock("BDIR", 1)
+{
+	this->sprite_ne = NULL;
+	this->sprite_se = NULL;
+	this->sprite_sw = NULL;
+	this->sprite_nw = NULL;
+}
+
+BDIRBlock::~BDIRBlock()
+{
+	delete this->sprite_ne;
+	delete this->sprite_se;
+	delete this->sprite_sw;
+	delete this->sprite_nw;
+}
+
+/* virtual */ int BDIRBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 30 - 12);
+	fb->SaveUInt16(this->tile_width);
+	fb->SaveUInt32(this->sprite_ne->Write(fw));
+	fb->SaveUInt32(this->sprite_se->Write(fw));
+	fb->SaveUInt32(this->sprite_sw->Write(fw));
+	fb->SaveUInt32(this->sprite_nw->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}
+
+GSLPBlock::GSLPBlock() : GameBlock("GSLP", 4)
+{
+	this->vert_down = NULL;
+	this->steep_down = NULL;
+	this->gentle_down = NULL;
+	this->level = NULL;
+	this->gentle_up = NULL;
+	this->steep_up = NULL;
+	this->vert_up = NULL;
+	this->pos_2d = NULL;
+	this->neg_2d = NULL;
+	this->pos_3d = NULL;
+	this->neg_3d = NULL;
+	this->close_button = NULL;
+	this->terraform_dot = NULL;
+	this->gui_text = NULL;
+}
+
+GSLPBlock::~GSLPBlock()
+{
+	delete this->vert_down;
+	delete this->steep_down;
+	delete this->gentle_down;
+	delete this->level;
+	delete this->gentle_up;
+	delete this->steep_up;
+	delete this->vert_up;
+	delete this->pos_2d;
+	delete this->neg_2d;
+	delete this->pos_3d;
+	delete this->neg_3d;
+	delete this->close_button;
+	delete this->terraform_dot;
+	delete this->gui_text;
+}
+
+int GSLPBlock::Write(FileWriter *fw)
+{
+	FileBlock *fb = new FileBlock;
+	fb->StartSave(this->blk_name, this->version, 68 - 12);
+	fb->SaveUInt32(this->vert_down->Write(fw));
+	fb->SaveUInt32(this->steep_down->Write(fw));
+	fb->SaveUInt32(this->gentle_down->Write(fw));
+	fb->SaveUInt32(this->level->Write(fw));
+	fb->SaveUInt32(this->gentle_up->Write(fw));
+	fb->SaveUInt32(this->steep_up->Write(fw));
+	fb->SaveUInt32(this->vert_up->Write(fw));
+	fb->SaveUInt32(this->pos_2d->Write(fw));
+	fb->SaveUInt32(this->neg_2d->Write(fw));
+	fb->SaveUInt32(this->pos_3d->Write(fw));
+	fb->SaveUInt32(this->neg_3d->Write(fw));
+	fb->SaveUInt32(this->close_button->Write(fw));
+	fb->SaveUInt32(this->terraform_dot->Write(fw));
+	fb->SaveUInt32(this->gui_text->Write(fw));
+	fb->CheckEndSave();
+	return fw->AddBlock(fb);
+}

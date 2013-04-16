@@ -1073,6 +1073,18 @@ static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
 	return blk;
 }
 
+static const Symbol _gbor_symbols[] = {
+	{"titlebar", 32},
+	{"button", 48},
+	{"pressed_button", 49},
+	{"rounded_button", 52},
+	{"pressed_rounded_button", 53},
+	{"frame", 64},
+	{"panel", 68},
+	{"inset", 80},
+	{NULL, 0}
+};
+
 /**
  * Convert a GBOR game block.
  * @param ng Node group to convert.
@@ -1084,7 +1096,7 @@ static GBORBlock *ConvertGBORNode(NodeGroup *ng)
 	GBORBlock *blk = new GBORBlock;
 
 	Values vals("GBOR", ng->line);
-	vals.PrepareNamedValues(ng->values, true, false);
+	vals.PrepareNamedValues(ng->values, true, false, _gbor_symbols);
 
 	blk->widget_type = vals.GetNumber("widget_type");
 	blk->border_top = vals.GetNumber("border_top");
@@ -1109,6 +1121,13 @@ static GBORBlock *ConvertGBORNode(NodeGroup *ng)
 	return blk;
 }
 
+/** Symbols of the GCHK block. */
+static const Symbol _gchk_symbols[] = {
+	{"check_box", 96},
+	{"radio_button", 112},
+	{NULL, 0}
+};
+
 /**
  * Convert a GCHK game block.
  * @param ng Node group to convert.
@@ -1120,7 +1139,7 @@ static GCHKBlock *ConvertGCHKNode(NodeGroup *ng)
 	GCHKBlock *blk = new GCHKBlock;
 
 	Values vals("GCHK", ng->line);
-	vals.PrepareNamedValues(ng->values, true, false);
+	vals.PrepareNamedValues(ng->values, true, false, _gchk_symbols);
 
 	blk->widget_type = vals.GetNumber("widget_type");
 	blk->empty = vals.GetSprite("empty");
@@ -1233,29 +1252,30 @@ static BlockNode *ConvertSheetNode(NodeGroup *ng)
 static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
 {
 	ExpandNoExpression(ng->exprs, ng->line, "sprite");
+	SpriteBlock *sb = new SpriteBlock;
 
 	Values vals("sprite", ng->line);
 	vals.PrepareNamedValues(ng->values, true, false);
 
-	std::string file = vals.GetString("file");
-	int xbase        = vals.GetNumber("x_base");
-	int ybase        = vals.GetNumber("y_base");
-	int width        = vals.GetNumber("width");
-	int height       = vals.GetNumber("height");
-	int xoffset      = vals.GetNumber("x_offset");
-	int yoffset      = vals.GetNumber("y_offset");
+	if (vals.named_count > 0) {
+		std::string file = vals.GetString("file");
+		int xbase        = vals.GetNumber("x_base");
+		int ybase        = vals.GetNumber("y_base");
+		int width        = vals.GetNumber("width");
+		int height       = vals.GetNumber("height");
+		int xoffset      = vals.GetNumber("x_offset");
+		int yoffset      = vals.GetNumber("y_offset");
 
-	vals.VerifyUsage();
-
-	SpriteBlock *sb = new SpriteBlock;
-	Image img;
-	img.LoadFile(file.c_str());
-	const char *err = sb->sprite_image.CopySprite(&img, xoffset, yoffset, xbase, ybase, width, height);
-	if (err != NULL) {
-		fprintf(stderr, "Error at line %d, loading of the sprite for \"%s\" failed: %s\n", ng->line, ng->name, err);
-		exit(1);
+		Image img;
+		img.LoadFile(file.c_str());
+		const char *err = sb->sprite_image.CopySprite(&img, xoffset, yoffset, xbase, ybase, width, height);
+		if (err != NULL) {
+			fprintf(stderr, "Error at line %d, loading of the sprite for \"%s\" failed: %s\n", ng->line, ng->name, err);
+			exit(1);
+		}
 	}
 
+	vals.VerifyUsage();
 	return sb;
 }
 
@@ -1382,6 +1402,24 @@ static FrameData *ConvertFrameDataNode(NodeGroup *ng)
 	return fd;
 }
 
+static BDIRBlock *ConvertBDIRNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "BDIR");
+	BDIRBlock *bb = new BDIRBlock;
+
+	Values vals("BDIR", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	bb->tile_width = vals.GetNumber("tile_width");
+	bb->sprite_ne = vals.GetSprite("ne");
+	bb->sprite_se = vals.GetSprite("se");
+	bb->sprite_sw = vals.GetSprite("sw");
+	bb->sprite_nw = vals.GetSprite("nw");
+
+	vals.VerifyUsage();
+	return bb;
+}
+
 /** Symbols of the shop game block. */
 static const Symbol _shop_symbols[] = {
 	{"ne_entrance", 0},
@@ -1446,6 +1484,34 @@ static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
 
 	vals.VerifyUsage();
 	return sb;
+}
+
+static GSLPBlock *ConvertGSLPNode(NodeGroup *ng)
+{
+	ExpandNoExpression(ng->exprs, ng->line, "GSLP");
+	GSLPBlock *gb = new GSLPBlock;
+
+	Values vals("GSLP", ng->line);
+	vals.PrepareNamedValues(ng->values, true, false);
+
+	gb->vert_down = vals.GetSprite("vert_down");
+	gb->steep_down = vals.GetSprite("steep_down");
+	gb->gentle_down = vals.GetSprite("gentle_down");
+	gb->level = vals.GetSprite("level");
+	gb->gentle_up = vals.GetSprite("gentle_up");
+	gb->steep_up = vals.GetSprite("steep_up");
+	gb->vert_up = vals.GetSprite("vert_up");
+	gb->pos_2d = vals.GetSprite("pos_2d");
+	gb->neg_2d = vals.GetSprite("neg_2d");
+	gb->pos_3d = vals.GetSprite("pos_3d");
+	gb->neg_3d = vals.GetSprite("neg_3d");
+	gb->close_button = vals.GetSprite("close_button");
+	gb->terraform_dot = vals.GetSprite("terraform_dot");
+	gb->gui_text = vals.GetStrings("texts");
+	gb->gui_text->CheckTranslations(_gui_string_names, lengthof(_gui_string_names), ng->line);
+
+	vals.VerifyUsage();
+	return gb;
 }
 
 /**
@@ -1550,6 +1616,8 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "GCHK") == 0) return ConvertGCHKNode(ng);
 	if (strcmp(ng->name, "GSLI") == 0) return ConvertGSLINode(ng);
 	if (strcmp(ng->name, "GSCL") == 0) return ConvertGSCLNode(ng);
+	if (strcmp(ng->name, "BDIR") == 0) return ConvertBDIRNode(ng);
+	if (strcmp(ng->name, "GSLP") == 0) return ConvertGSLPNode(ng);
 
 	/* Unknown type of node. */
 	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);

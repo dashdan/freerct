@@ -171,4 +171,5 @@ void SetupScanner(FILE *new_file)
 {
 	yyrestart(new_file);
 	BEGIN(INITIAL);
+	line = 1;
 }

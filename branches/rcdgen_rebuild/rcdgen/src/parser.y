@@ -88,9 +88,8 @@ Factor : PAR_OPEN Expression PAR_CLOSE {
 }
        ;
 
-NamedValueList : NamedValue {
+NamedValueList : /* Empty */ {
 	$$ = new NamedValueList;
-	$$->values.push_back($1);
 }
                ;
 

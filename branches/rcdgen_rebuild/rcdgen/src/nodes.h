@@ -600,6 +600,46 @@ public:
 	SpriteBlock *right_top_pressed;  ///< Right/down pressed bar top.
 };
 
+class BDIRBlock : public GameBlock {
+public:
+	BDIRBlock();
+	/* virtual */ ~BDIRBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	int tile_width;   ///< Zoom-width of a tile of the surface.
+	SpriteBlock *sprite_ne; ///< ne arrow.
+	SpriteBlock *sprite_se; ///< se arrow.
+	SpriteBlock *sprite_sw; ///< sw arrow.
+	SpriteBlock *sprite_nw; ///< nw arrow.
+};
+
+class GSLPBlock : public GameBlock {
+public:
+	GSLPBlock();
+	/* virtual */ ~GSLPBlock();
+
+	/* virtual */ int Write(FileWriter *fw);
+
+	SpriteBlock *vert_down;     ///< Slope going vertically down.
+	SpriteBlock *steep_down;    ///< Slope going steeply down.
+	SpriteBlock *gentle_down;   ///< Slope going gently down.
+	SpriteBlock *level;         ///< Level slope.
+	SpriteBlock *gentle_up;     ///< Slope going gently up.
+	SpriteBlock *steep_up;      ///< Slope going steeply up.
+	SpriteBlock *vert_up;       ///< Slope going vertically up.
+	SpriteBlock *pos_2d;        ///< Flat rotation positive direction (counter clock wise)
+	SpriteBlock *neg_2d;        ///< Flat rotation negative direction (clock wise)
+	SpriteBlock *pos_3d;        ///< Diametric rotation positive direction (counter clock wise)
+	SpriteBlock *neg_3d;        ///< Diametric rotation negative direction (clock wise)
+	SpriteBlock *close_button;  ///< Close Button.
+	SpriteBlock *maxi_button;   ///< Maximise button.
+	SpriteBlock *mini_button;   ///< Minimise button.
+	SpriteBlock *terraform_dot; ///< Terraform dot.
+	Strings *gui_text;          ///< Text of the guis (reference to a TEXT block).
+};
+
+
 FileNodeList *CheckTree(NamedValueList *values);
 
 #endif
