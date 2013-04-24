@@ -12,7 +12,10 @@
 #ifndef SCANNER_FUNCS_H
 #define SCANNER_FUNCS_H
 
+#include <string>
+
 extern int line; ///< Line number of the input file being scanned.
+extern std::string filename; ///< Name of the file being parsed.
 
 extern char *text;     ///< Temporary storage for a string.
 extern int text_size;  ///< Length of #text.
@@ -58,6 +61,6 @@ union YyStruct {
 
 extern NamedValueList *_parsed_data;
 
-void SetupScanner(FILE *new_file);
+void SetupScanner(const char *fname, FILE *new_file);
 
 #endif

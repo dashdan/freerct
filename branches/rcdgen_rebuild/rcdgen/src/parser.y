@@ -54,32 +54,38 @@ Expression : Factor {
 }
            ;
 Expression : MINUS Factor {
-	$$ = new UnaryOperator($1, '-', $2);
+	Position pos(filename, $1);
+	$$ = new UnaryOperator(pos, '-', $2);
 }
            ;
 
 Factor : STRING {
-	$$ = new StringLiteral($1.line, $1.value);
+	Position pos(filename, $1.line);
+	$$ = new StringLiteral(pos, $1.value);
 }
        ;
 
 Factor : NUMBER {
-	$$ = new NumberLiteral($1.line, $1.value);
+	Position pos(filename, $1.line);
+	$$ = new NumberLiteral(pos, $1.value);
 }
        ;
 
 Factor : IDENTIFIER {
-	$$ = new IdentifierLiteral($1.line, $1.value);
+	Position pos(filename, $1.line);
+	$$ = new IdentifierLiteral(pos, $1.value);
 }
        ;
 
 Factor : BITSET_KW PAR_OPEN PAR_CLOSE {
-	$$ = new BitSet($1, NULL);
+	Position pos(filename, $1);
+	$$ = new BitSet(pos, NULL);
 }
        ;
 
 Factor : BITSET_KW PAR_OPEN ExpressionList PAR_CLOSE {
-	$$ = new BitSet($1, $3);
+	Position pos(filename, $1);
+	$$ = new BitSet(pos, $3);
 }
        ;
 
@@ -105,13 +111,15 @@ NamedValue : Group {
            ;
 
 NamedValue : IDENTIFIER COLON Group {
-	Name *name = new SingleName($1.line, $1.value);
+	Position pos(filename, $1.line);
+	Name *name = new SingleName(pos, $1.value);
 	$$ = new NamedValue(name, $3);
 }
            ;
 
 NamedValue : IDENTIFIER COLON Expression SEMICOLON {
-	Name *name = new SingleName($1.line, $1.value);
+	Position pos(filename, $1.line);
+	Name *name = new SingleName(pos, $1.value);
 	Group *group = new ExpressionGroup($3);
 	$$ = new NamedValue(name, group);
 }
@@ -123,7 +131,8 @@ NamedValue : IdentifierTable COLON Group {
            ;
 
 NamedValue : IMPORT_KW STRING SEMICOLON {
-	$$ = new ImportValue($1, $2.value);
+	Position pos(filename, $1);
+	$$ = new ImportValue(pos, $2.value);
 }
            ;
 
@@ -146,25 +155,29 @@ IdentifierRows : IdentifierRows PIPE IdentifierRow {
 
 IdentifierRow : IDENTIFIER {
 	$$ = new NameRow();
-	IdentifierLine *il = new IdentifierLine($1.line, $1.value);
+	Position pos(filename, $1.line);
+	IdentifierLine *il = new IdentifierLine(pos, $1.value);
 	$$->identifiers.push_back(il);
 }
               ;
 
 IdentifierRow : IdentifierRow COMMA IDENTIFIER {
 	$$ = $1;
-	IdentifierLine *il = new IdentifierLine($3.line, $3.value);
+	Position pos(filename, $3.line);
+	IdentifierLine *il = new IdentifierLine(pos, $3.value);
 	$$->identifiers.push_back(il);
 }
               ;
 
 Group : IDENTIFIER CURLY_OPEN NamedValueList CURLY_CLOSE {
-	$$ = new NodeGroup($1.line, $1.value, NULL, $3);
+	Position pos(filename, $1.line);
+	$$ = new NodeGroup(pos, $1.value, NULL, $3);
 }
       ;
 
 Group : IDENTIFIER PAR_OPEN ExpressionList PAR_CLOSE CURLY_OPEN NamedValueList CURLY_CLOSE {
-	$$ = new NodeGroup($1.line, $1.value, $3, $6);
+	Position pos(filename, $1.line);
+	$$ = new NodeGroup(pos, $1.value, $3, $6);
 }
       ;
 

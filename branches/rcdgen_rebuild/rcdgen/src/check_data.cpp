@@ -23,18 +23,18 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng);
  * @param exprs %Expression list containing parameters.
  * @param out [out] Output array for storing \a expected expressions from the list.
  * @param expected Expected number of expressions in \a exprs.
- * @param line Line number of the node (for reporting errors).
+ * @param pos %Position of the node (for reporting errors).
  * @param node %Name of the node being checked and expanded.
  */
-static void ExpandExpressions(ExpressionList *exprs, Expression *out[], size_t expected, int line, const char *node)
+static void ExpandExpressions(ExpressionList *exprs, Expression *out[], size_t expected, const Position &pos, const char *node)
 {
 	if (exprs == NULL) {
 		if (expected == 0) return;
-		fprintf(stderr, "Error at line %d: No arguments found for node \"%s\" (expected %lu)\n", line, node, expected);
+		fprintf(stderr, "Error at %s: No arguments found for node \"%s\" (expected %lu)\n", pos.ToString(), node, expected);
 		exit(1);
 	}
 	if (exprs->exprs.size() != expected) {
-		fprintf(stderr, "Error at line %d: Found %lu arguments for node \"%s\", expected %lu\n", line, exprs->exprs.size(), node, expected);
+		fprintf(stderr, "Error at %s: Found %lu arguments for node \"%s\", expected %lu\n", pos.ToString(), exprs->exprs.size(), node, expected);
 		exit(1);
 	}
 	int idx = 0;
@@ -46,14 +46,14 @@ static void ExpandExpressions(ExpressionList *exprs, Expression *out[], size_t e
 /**
  * Check that there are no expressions provided in \a exprs. Give an error otherwise.
  * @param exprs %Expression list containing parameters.
- * @param line Line number of the node (for reporting errors).
+ * @param pos %Position of the node (for reporting errors).
  * @param node %Name of the node being checked and expanded.
  */
-static void ExpandNoExpression(ExpressionList *exprs, int line, const char *node)
+static void ExpandNoExpression(ExpressionList *exprs, const Position &pos, const char *node)
 {
 	if (exprs == NULL || exprs->exprs.size() == 0) return;
 
-	fprintf(stderr, "Error at line %d: No arguments expected for node \"%s\" (found %lu)\n", line, node, exprs->exprs.size());
+	fprintf(stderr, "Error at %s: No arguments expected for node \"%s\" (found %lu)\n", pos.ToString(), node, exprs->exprs.size());
 	exit(1);
 }
 
@@ -74,7 +74,7 @@ static char *GetString(Expression *expr, int index, const char *node)
 	Expression *expr2 = expr->Evaluate(NULL);
 	sl = dynamic_cast<StringLiteral *>(expr2);
 	if (sl == NULL) {
-		fprintf(stderr, "Error at line %d: Expression parameter %d of node %s is not a string", expr->line, index + 1, node);
+		fprintf(stderr, "Error at %s: Expression parameter %d of node %s is not a string", expr->pos.ToString(), index + 1, node);
 		exit(1);
 	}
 	char *result = sl->CopyText();
@@ -100,7 +100,7 @@ static long long GetNumber(Expression *expr, int index, const char *node, const 
 	Expression *expr2 = expr->Evaluate(symbols);
 	nl = dynamic_cast<NumberLiteral *>(expr2);
 	if (nl == NULL) {
-		fprintf(stderr, "Error at line %d: Expression parameter %d of node %s is not a number", expr->line, index + 1, node);
+		fprintf(stderr, "Error at %s: Expression parameter %d of node %s is not a number", expr->pos.ToString(), index + 1, node);
 		exit(1);
 	}
 	long long value = nl->value;
@@ -116,7 +116,7 @@ static long long GetNumber(Expression *expr, int index, const char *node, const 
 static FileNode *ConvertFileNode(NodeGroup *ng)
 {
 	Expression *argument;
-	ExpandExpressions(ng->exprs, &argument, 1, ng->line, "file");
+	ExpandExpressions(ng->exprs, &argument, 1, ng->pos, "file");
 
 	char *filename = GetString(argument, 0, "file");
 	FileNode *fn = new FileNode(filename);
@@ -124,16 +124,16 @@ static FileNode *ConvertFileNode(NodeGroup *ng)
 	for (std::list<BaseNamedValue *>::iterator iter = ng->values->values.begin(); iter != ng->values->values.end(); iter++) {
 		NamedValue *nv = dynamic_cast<NamedValue *>(*iter);
 		assert(nv != NULL); // Should always hold, as ImportValue has been eliminated.
-		if (nv->name != NULL) fprintf(stderr, "Warning at line %d: Unexpected name encountered, ignoring\n", nv->name->GetLine());
+		if (nv->name != NULL) fprintf(stderr, "Warning at %s: Unexpected name encountered, ignoring\n", nv->name->GetPosition().ToString());
 		NodeGroup *ng = nv->group->CastToNodeGroup();
 		if (ng == NULL) {
-			fprintf(stderr, "Error at line %d: Only node groups may be added\n", nv->group->GetLine());
+			fprintf(stderr, "Error at %s: Only node groups may be added\n", nv->group->GetPosition().ToString());
 			exit(1);
 		}
 		BlockNode *bn = ConvertNodeGroup(ng);
 		GameBlock *gb = dynamic_cast<GameBlock *>(bn);
 		if (gb == NULL) {
-			fprintf(stderr, "Error at line %d: Only game blocks can be added to a \"file\" node\n", nv->group->GetLine());
+			fprintf(stderr, "Error at %s: Only game blocks can be added to a \"file\" node\n", nv->group->GetPosition().ToString());
 			exit(1);
 		}
 		fn->blocks.push_back(gb);
@@ -145,44 +145,42 @@ static FileNode *ConvertFileNode(NodeGroup *ng)
 class ValueInformation {
 public:
 	ValueInformation();
-	ValueInformation(const std::string &name, int line);
+	ValueInformation(const std::string &name, const Position &pos);
 	ValueInformation(const ValueInformation &vi);
 	ValueInformation &operator=(const ValueInformation &vi);
 	~ValueInformation();
 
-	long long GetNumber(int line, const char *node, const Symbol *symbols = NULL);
-	std::string GetString(int line, const char *node);
-	SpriteBlock *GetSprite(int line, const char *node);
-	Strings *GetStrings(int line, const char *node);
+	long long GetNumber(const Position &pos, const char *node, const Symbol *symbols = NULL);
+	std::string GetString(const Position &pos, const char *node);
+	SpriteBlock *GetSprite(const Position &pos, const char *node);
+	Strings *GetStrings(const Position &pos, const char *node);
 
+	Position pos;           ///< %Position of the name.
 	Expression *expr_value; ///< %Expression attached to it (if any).
 	BlockNode *node_value;  ///< Node attached to it (if any).
 	std::string name;       ///< %Name of the value.
-	int line;               ///< Line number of the name.
 	bool used;              ///< Is the value used?
 };
 
 /** Default constructor. */
-ValueInformation::ValueInformation()
+ValueInformation::ValueInformation() : pos("", 0)
 {
 	this->expr_value = NULL;
 	this->node_value = NULL;
 	this->name = "_unknown_";
-	this->line = 0;
 	this->used = false;
 }
 
 /**
  * Constructor of the class.
  * @param name %Name of the value.
- * @param line Line number of the name.
+ * @param pos %Position of the name.
  */
-ValueInformation::ValueInformation(const std::string &name, int line)
+ValueInformation::ValueInformation(const std::string &name, const Position &pos) : pos(pos)
 {
 	this->expr_value = NULL;
 	this->node_value = NULL;
 	this->name = name;
-	this->line = line;
 	this->used = false;
 }
 
@@ -190,7 +188,7 @@ ValueInformation::ValueInformation(const std::string &name, int line)
  * Copy-constructor, moves ownership of #expr_value and #node_value to the assigned object.
  * @param vi Original object.
  */
-ValueInformation::ValueInformation(const ValueInformation &vi)
+ValueInformation::ValueInformation(const ValueInformation &vi) : pos(vi.pos)
 {
 	ValueInformation &w_vi = const_cast<ValueInformation &>(vi);
 	this->expr_value = w_vi.expr_value;
@@ -199,7 +197,6 @@ ValueInformation::ValueInformation(const ValueInformation &vi)
 	w_vi.node_value = NULL;
 
 	this->name = vi.name;
-	this->line = vi.line;
 	this->used = vi.used;
 }
 
@@ -218,7 +215,7 @@ ValueInformation &ValueInformation::operator=(const ValueInformation &vi)
 		w_vi.node_value = NULL;
 
 		this->name = vi.name;
-		this->line = vi.line;
+		this->pos  = vi.pos;
 		this->used = vi.used;
 	}
 	return *this;
@@ -232,16 +229,16 @@ ValueInformation::~ValueInformation()
 
 /**
  * Extract a number from the given expression.
- * @param line Line number of the node (for reporting errors).
+ * @param pos %Position of the node (for reporting errors).
  * @param node %Name of the node.
  * @param symbols Symbols available for use in the expression.
  * @return Numeric value.
  */
-long long ValueInformation::GetNumber(int line, const char *node, const Symbol *symbols)
+long long ValueInformation::GetNumber(const Position &pos, const char *node, const Symbol *symbols)
 {
 	if (this->expr_value == NULL) {
 fail:
-		fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a numeric value\n", line, this->name.c_str(), node);
+		fprintf(stderr, "Error at %s: Field \"%s\" of node \"%s\" is not a numeric value\n", pos.ToString(), this->name.c_str(), node);
 		exit(1);
 	}
 	NumberLiteral *nl = dynamic_cast<NumberLiteral *>(this->expr_value); // Simple common case.
@@ -258,15 +255,15 @@ fail:
 
 /**
  * Extract a string from the given expression.
- * @param line Line number of the node (for reporting errors).
+ * @param pos %Position of the node (for reporting errors).
  * @param node %Name of the node.
  * @return String value, should be freed by the user.
  */
-std::string ValueInformation::GetString(int line, const char *node)
+std::string ValueInformation::GetString(const Position &pos, const char *node)
 {
 	if (this->expr_value == NULL) {
 fail:
-		fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a string value\n", line, this->name.c_str(), node);
+		fprintf(stderr, "Error at %s: Field \"%s\" of node \"%s\" is not a string value\n", pos.ToString(), this->name.c_str(), node);
 		exit(1);
 	}
 	StringLiteral *sl = dynamic_cast<StringLiteral *>(this->expr_value); // Simple common case.
@@ -283,35 +280,35 @@ fail:
 
 /**
  * Get a sprite (#SpriteBlock) from the given node value.
- * @param line Line number of the node (for reporting errors).
+ * @param pos %Position of the node (for reporting errors).
  * @param node %Name of the node.
  * @return The sprite.
  */
-SpriteBlock *ValueInformation::GetSprite(int line, const char *node)
+SpriteBlock *ValueInformation::GetSprite(const Position &pos, const char *node)
 {
 	SpriteBlock *sb = dynamic_cast<SpriteBlock *>(this->node_value);
 	if (sb != NULL) {
 		this->node_value = NULL;
 		return sb;
 	}
-	fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a sprite node\n", line, this->name.c_str(), node);
+	fprintf(stderr, "Error at %s: Field \"%s\" of node \"%s\" is not a sprite node\n", pos.ToString(), this->name.c_str(), node);
 	exit(1);
 }
 
 /**
  * Get a set of strings from the given node value.
- * @param line Line number of the node (for reporting errors).
+ * @param pos %Position of the node (for reporting errors).
  * @param node %Name of the node.
  * @return The set of strings.
  */
-Strings *ValueInformation::GetStrings(int line, const char *node)
+Strings *ValueInformation::GetStrings(const Position &pos, const char *node)
 {
 	Strings *st = dynamic_cast<Strings *>(this->node_value);
 	if (st != NULL) {
 		this->node_value = NULL;
 		return st;
 	}
-	fprintf(stderr, "Error at line %d: Field \"%s\" of node \"%s\" is not a strings node\n", line, this->name.c_str(), node);
+	fprintf(stderr, "Error at %s: Field \"%s\" of node \"%s\" is not a strings node\n", pos.ToString(), this->name.c_str(), node);
 	exit(1);
 }
 
@@ -332,9 +329,9 @@ void AssignNames(BlockNode *bn, NameTable *nt, ValueInformation *vis, int *lengt
 			IdentifierLine *il = *col_iter;
 			if (il->IsValid()) {
 				vis[*length].expr_value = NULL;
-				vis[*length].node_value = bn->GetSubNode(row, col, il->name, il->line);
+				vis[*length].node_value = bn->GetSubNode(row, col, il->name, il->pos);
 				vis[*length].name = std::string(il->name);
-				vis[*length].line = il->line;
+				vis[*length].pos = il->pos;
 				vis[*length].used = false;
 				(*length)++;
 			}
@@ -347,11 +344,11 @@ void AssignNames(BlockNode *bn, NameTable *nt, ValueInformation *vis, int *lengt
 /** Class for storing found named values. */
 class Values {
 public:
-	Values(const char *node_name, int node_line);
+	Values(const char *node_name, const Position &pos);
 	~Values();
 
+	const Position pos;    ///< %Position of the node.
 	const char *node_name; ///< Name of the node using the values (memory is not released).
-	int node_line;         ///< Line number of the node.
 
 	void PrepareNamedValues(NamedValueList *values, bool allow_named, bool allow_unnamed, const Symbol *symbols = NULL);
 	ValueInformation &FindValue(const char *fld_name);
@@ -374,12 +371,11 @@ private:
 /**
  * Constructor of the values collection.
  * @param node_name Name of the node using the values (caller owns the memory).
- * @param node_line Line number of the node.
+ * @param pos %Position of the node.
  */
-Values::Values(const char *node_name, int node_line)
+Values::Values(const char *node_name, const Position &pos) : pos(pos)
 {
 	this->node_name = node_name;
-	this->node_line = node_line;
 
 	this->named_count = 0;
 	this->unnamed_count = 0;
@@ -427,13 +423,13 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 		assert(nv != NULL); // Should always hold, as ImportValue has been eliminated.
 		if (nv->name == NULL) { // Unnamed value.
 			if (!allow_unnamed) {
-				fprintf(stderr, "Error at line %d: Value should have a name\n", nv->group->GetLine());
+				fprintf(stderr, "Error at %s: Value should have a name\n", nv->group->GetPosition().ToString());
 				exit(1);
 			}
 			unnamed_count++;
 		} else {
 			if (!allow_named) {
-				fprintf(stderr, "Error at line %d: Value should not have a name\n", nv->group->GetLine());
+				fprintf(stderr, "Error at %s: Value should not have a name\n", nv->group->GetPosition().ToString());
 				exit(1);
 			}
 			int count = nv->name->GetNameCount();
@@ -454,7 +450,7 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 				this->unnamed_values[unnamed_count].expr_value = NULL;
 				this->unnamed_values[unnamed_count].node_value = ConvertNodeGroup(ng);
 				this->unnamed_values[unnamed_count].name = "???";
-				this->unnamed_values[unnamed_count].line = ng->GetLine();
+				this->unnamed_values[unnamed_count].pos = ng->GetPosition();
 				this->unnamed_values[unnamed_count].used = false;
 				unnamed_count++;
 				continue;
@@ -464,7 +460,7 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 			this->unnamed_values[unnamed_count].expr_value = eg->expr->Evaluate(symbols);
 			this->unnamed_values[unnamed_count].node_value = NULL;
 			this->unnamed_values[unnamed_count].name = "???";
-			this->unnamed_values[unnamed_count].line = ng->GetLine();
+			this->unnamed_values[unnamed_count].pos = ng->GetPosition();
 			this->unnamed_values[unnamed_count].used = false;
 			unnamed_count++;
 			continue;
@@ -477,7 +473,7 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 					this->named_values[named_count].expr_value = NULL;
 					this->named_values[named_count].node_value = bn;
 					this->named_values[named_count].name = std::string(sn->name);
-					this->named_values[named_count].line = sn->line;
+					this->named_values[named_count].pos = sn->pos;
 					this->named_values[named_count].used = false;
 					named_count++;
 					continue;
@@ -493,13 +489,13 @@ void Values::PrepareNamedValues(NamedValueList *values, bool allow_named, bool a
 			assert(eg != NULL);
 			SingleName *sn = dynamic_cast<SingleName *>(nv->name);
 			if (sn == NULL) {
-				fprintf(stderr, "Error at line %d: Expression must have a single name\n", nv->name->GetLine());
+				fprintf(stderr, "Error at %s: Expression must have a single name\n", nv->name->GetPosition().ToString());
 				exit(1);
 			}
 			this->named_values[named_count].expr_value = eg->expr->Evaluate(symbols);
 			this->named_values[named_count].node_value = NULL;
 			this->named_values[named_count].name = std::string(sn->name);
-			this->named_values[named_count].line = sn->line;
+			this->named_values[named_count].pos = sn->pos;
 			this->named_values[named_count].used = false;
 			named_count++;
 			continue;
@@ -523,7 +519,7 @@ ValueInformation &Values::FindValue(const char *fld_name)
 			return vi;
 		}
 	}
-	fprintf(stderr, "Error at line %d: Cannot find a value for field \"%s\" in node \"%s\"\n", this->node_line, fld_name, this->node_name);
+	fprintf(stderr, "Error at %s: Cannot find a value for field \"%s\" in node \"%s\"\n", this->pos.ToString(), fld_name, this->node_name);
 	exit(1);
 }
 
@@ -535,7 +531,7 @@ ValueInformation &Values::FindValue(const char *fld_name)
  */
 long long Values::GetNumber(const char *fld_name, const Symbol *symbols)
 {
-	return FindValue(fld_name).GetNumber(this->node_line, this->node_name);
+	return FindValue(fld_name).GetNumber(this->pos, this->node_name);
 }
 
 /**
@@ -545,7 +541,7 @@ long long Values::GetNumber(const char *fld_name, const Symbol *symbols)
  */
 std::string Values::GetString(const char *fld_name)
 {
-	return FindValue(fld_name).GetString(this->node_line, this->node_name);
+	return FindValue(fld_name).GetString(this->pos, this->node_name);
 }
 
 /**
@@ -555,7 +551,7 @@ std::string Values::GetString(const char *fld_name)
  */
 SpriteBlock *Values::GetSprite(const char *fld_name)
 {
-	return FindValue(fld_name).GetSprite(this->node_line, this->node_name);
+	return FindValue(fld_name).GetSprite(this->pos, this->node_name);
 }
 
 /**
@@ -565,7 +561,7 @@ SpriteBlock *Values::GetSprite(const char *fld_name)
  */
 Strings *Values::GetStrings(const char *fld_name)
 {
-	return FindValue(fld_name).GetStrings(this->node_line, this->node_name);
+	return FindValue(fld_name).GetStrings(this->pos, this->node_name);
 }
 
 /** Verify whether all named values were used in a node. */
@@ -574,13 +570,13 @@ void Values::VerifyUsage()
 	for (int i = 0; i < this->unnamed_count; i++) {
 		const ValueInformation &vi = this->unnamed_values[i];
 		if (!vi.used) {
-			fprintf(stderr, "Warning at line %d: Unnamed value in node \"%s\" was not used\n", vi.line, this->node_name);
+			fprintf(stderr, "Warning at %s: Unnamed value in node \"%s\" was not used\n", vi.pos.ToString(), this->node_name);
 		}
 	}
 	for (int i = 0; i < this->named_count; i++) {
 		const ValueInformation &vi = this->named_values[i];
 		if (!vi.used) {
-			fprintf(stderr, "Warning at line %d: Named value \"%s\" was not used in node \"%s\"\n", vi.line, vi.name.c_str(), this->node_name);
+			fprintf(stderr, "Warning at %s: Named value \"%s\" was not used in node \"%s\"\n", vi.pos.ToString(), vi.name.c_str(), this->node_name);
 		}
 	}
 }
@@ -615,10 +611,10 @@ static const char *_surface_sprite[] = {
  */
 static TSELBlock *ConvertTSELNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "TSEL");
+	ExpandNoExpression(ng->exprs, ng->pos, "TSEL");
 	TSELBlock *blk = new TSELBlock;
 
-	Values vals("TSEL", ng->line);
+	Values vals("TSEL", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	/* get the fields and their value. */
@@ -655,10 +651,10 @@ static const Symbol _surface_types[] = {
  */
 static SURFBlock *ConvertSURFNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "SURF");
+	ExpandNoExpression(ng->exprs, ng->pos, "SURF");
 	SURFBlock *sb = new SURFBlock;
 
-	Values vals("SURF", ng->line);
+	Values vals("SURF", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _surface_types);
 
 	sb->surf_type  = vals.GetNumber("surf_type");
@@ -702,10 +698,10 @@ static const Symbol _fund_symbols[] = {
  */
 static FUNDBlock *ConvertFUNDNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "FUND");
+	ExpandNoExpression(ng->exprs, ng->pos, "FUND");
 	FUNDBlock *fb = new FUNDBlock;
 
-	Values vals("FUND", ng->line);
+	Values vals("FUND", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _fund_symbols);
 
 	fb->found_type = vals.GetNumber("found_type");
@@ -788,10 +784,10 @@ static const char *_path_sprites[] = {
  */
 static PATHBlock *ConvertPATHNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "PATH");
+	ExpandNoExpression(ng->exprs, ng->pos, "PATH");
 	PATHBlock *blk = new PATHBlock;
 
-	Values vals("PATH", ng->line);
+	Values vals("PATH", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _path_symbols);
 
 	blk->path_type = vals.GetNumber("path_type");
@@ -837,10 +833,10 @@ static const char *_platform_sprites[] = {
  */
 static PLATBlock *ConvertPLATNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "PLAT");
+	ExpandNoExpression(ng->exprs, ng->pos, "PLAT");
 	PLATBlock *blk = new PLATBlock;
 
-	Values vals("PLAT", ng->line);
+	Values vals("PLAT", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _platform_symbols);
 
 	blk->tile_width = vals.GetNumber("tile_width");
@@ -896,10 +892,10 @@ static const char *_support_sprites[] = {
  */
 static SUPPBlock *ConvertSUPPNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "SUPP");
+	ExpandNoExpression(ng->exprs, ng->pos, "SUPP");
 	SUPPBlock *blk = new SUPPBlock;
 
-	Values vals("SUPP", ng->line);
+	Values vals("SUPP", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _support_symbols);
 
 	blk->support_type = vals.GetNumber("support_type");
@@ -921,10 +917,10 @@ static SUPPBlock *ConvertSUPPNode(NodeGroup *ng)
  */
 static TCORBlock *ConvertTCORNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "TCOR");
+	ExpandNoExpression(ng->exprs, ng->pos, "TCOR");
 	TCORBlock *blk = new TCORBlock;
 
-	Values vals("TCOR", ng->line);
+	Values vals("TCOR", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	/* get the fields and their value. */
@@ -960,10 +956,10 @@ static TCORBlock *ConvertTCORNode(NodeGroup *ng)
  */
 static PRSGBlock *ConvertPRSGNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "PRSG");
+	ExpandNoExpression(ng->exprs, ng->pos, "PRSG");
 	PRSGBlock *blk = new PRSGBlock;
 
-	Values vals("PRSG", ng->line);
+	Values vals("PRSG", ng->pos);
 	vals.PrepareNamedValues(ng->values, false, true);
 
 	for (int i = 0; i < vals.unnamed_count; i++) {
@@ -971,13 +967,13 @@ static PRSGBlock *ConvertPRSGNode(NodeGroup *ng)
 		if (vi.used) continue;
 		PersonGraphics *pg = dynamic_cast<PersonGraphics *>(vi.node_value);
 		if (pg == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a person_graphics node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a person_graphics node\n", vi.pos.ToString());
 			exit(1);
 		}
 		blk->person_graphics.push_back(*pg);
 		vi.node_value = NULL;
 		if (blk->person_graphics.size() > 255) {
-			fprintf(stderr, "Error at line %d: Too many person graphics in a PRSG block\n", vi.line);
+			fprintf(stderr, "Error at %s: Too many person graphics in a PRSG block\n", vi.pos.ToString());
 			exit(1);
 		}
 		vi.used = true;
@@ -1005,10 +1001,10 @@ static const Symbol _anim_symbols[] = {
  */
 static ANIMBlock *ConvertANIMNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "ANIM");
+	ExpandNoExpression(ng->exprs, ng->pos, "ANIM");
 	ANIMBlock *blk = new ANIMBlock;
 
-	Values vals("ANIM", ng->line);
+	Values vals("ANIM", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, true, _anim_symbols);
 
 	blk->person_type = vals.GetNumber("person_type");
@@ -1019,13 +1015,13 @@ static ANIMBlock *ConvertANIMNode(NodeGroup *ng)
 		if (vi.used) continue;
 		FrameData *fd = dynamic_cast<FrameData *>(vi.node_value);
 		if (fd == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a \"frame_data\" node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a \"frame_data\" node\n", vi.pos.ToString());
 			exit(1);
 		}
 		blk->frames.push_back(*fd);
 		vi.node_value = NULL;
 		if (blk->frames.size() > 0xFFFF) {
-			fprintf(stderr, "Error at line %d: Too many frames in an ANIM block\n", vi.line);
+			fprintf(stderr, "Error at %s: Too many frames in an ANIM block\n", vi.pos.ToString());
 			exit(1);
 		}
 		vi.used = true;
@@ -1042,10 +1038,10 @@ static ANIMBlock *ConvertANIMNode(NodeGroup *ng)
  */
 static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "ANSP");
+	ExpandNoExpression(ng->exprs, ng->pos, "ANSP");
 	ANSPBlock *blk = new ANSPBlock;
 
-	Values vals("ANSP", ng->line);
+	Values vals("ANSP", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, true, _anim_symbols);
 
 	blk->tile_width  = vals.GetNumber("tile_width");
@@ -1057,13 +1053,13 @@ static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
 		if (vi.used) continue;
 		SpriteBlock *sp = dynamic_cast<SpriteBlock *>(vi.node_value);
 		if (sp == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a \"sprite\" node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a \"sprite\" node\n", vi.pos.ToString());
 			exit(1);
 		}
 		blk->frames.push_back(sp);
 		vi.node_value = NULL;
 		if (blk->frames.size() > 0xFFFF) {
-			fprintf(stderr, "Error at line %d: Too many frames in an ANSP block\n", vi.line);
+			fprintf(stderr, "Error at %s: Too many frames in an ANSP block\n", vi.pos.ToString());
 			exit(1);
 		}
 		vi.used = true;
@@ -1073,6 +1069,7 @@ static ANSPBlock *ConvertANSPNode(NodeGroup *ng)
 	return blk;
 }
 
+/** Symbols of the GBOR block. */
 static const Symbol _gbor_symbols[] = {
 	{"titlebar", 32},
 	{"button", 48},
@@ -1092,10 +1089,10 @@ static const Symbol _gbor_symbols[] = {
  */
 static GBORBlock *ConvertGBORNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "GBOR");
+	ExpandNoExpression(ng->exprs, ng->pos, "GBOR");
 	GBORBlock *blk = new GBORBlock;
 
-	Values vals("GBOR", ng->line);
+	Values vals("GBOR", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _gbor_symbols);
 
 	blk->widget_type = vals.GetNumber("widget_type");
@@ -1135,10 +1132,10 @@ static const Symbol _gchk_symbols[] = {
  */
 static GCHKBlock *ConvertGCHKNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "GCHK");
+	ExpandNoExpression(ng->exprs, ng->pos, "GCHK");
 	GCHKBlock *blk = new GCHKBlock;
 
-	Values vals("GCHK", ng->line);
+	Values vals("GCHK", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _gchk_symbols);
 
 	blk->widget_type = vals.GetNumber("widget_type");
@@ -1160,10 +1157,10 @@ static GCHKBlock *ConvertGCHKNode(NodeGroup *ng)
  */
 static GSLIBlock *ConvertGSLINode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "GSLI");
+	ExpandNoExpression(ng->exprs, ng->pos, "GSLI");
 	GSLIBlock *blk = new GSLIBlock;
 
-	Values vals("GSLI", ng->line);
+	Values vals("GSLI", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	blk->min_length = vals.GetNumber("min_length");
@@ -1186,10 +1183,10 @@ static GSLIBlock *ConvertGSLINode(NodeGroup *ng)
  */
 static GSCLBlock *ConvertGSCLNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "GSCL");
+	ExpandNoExpression(ng->exprs, ng->pos, "GSCL");
 	GSCLBlock *blk = new GSCLBlock;
 
-	Values vals("GSCL", ng->line);
+	Values vals("GSCL", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	blk->min_length = vals.GetNumber("min_length");
@@ -1223,11 +1220,11 @@ static GSCLBlock *ConvertGSCLNode(NodeGroup *ng)
  */
 static BlockNode *ConvertSheetNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "sheet");
+	ExpandNoExpression(ng->exprs, ng->pos, "sheet");
 
-	SheetBlock *sb = new SheetBlock(ng->line);
+	SheetBlock *sb = new SheetBlock(ng->pos);
 
-	Values vals("sheet", ng->line);
+	Values vals("sheet", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	sb->file     = vals.GetString("file");
@@ -1251,10 +1248,10 @@ static BlockNode *ConvertSheetNode(NodeGroup *ng)
  */
 static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "sprite");
+	ExpandNoExpression(ng->exprs, ng->pos, "sprite");
 	SpriteBlock *sb = new SpriteBlock;
 
-	Values vals("sprite", ng->line);
+	Values vals("sprite", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	if (vals.named_count > 0) {
@@ -1270,7 +1267,7 @@ static SpriteBlock *ConvertSpriteNode(NodeGroup *ng)
 		img.LoadFile(file.c_str());
 		const char *err = sb->sprite_image.CopySprite(&img, xoffset, yoffset, xbase, ybase, width, height);
 		if (err != NULL) {
-			fprintf(stderr, "Error at line %d, loading of the sprite for \"%s\" failed: %s\n", ng->line, ng->name, err);
+			fprintf(stderr, "Error at %s, loading of the sprite for \"%s\" failed: %s\n", ng->pos.ToString(), ng->name, err);
 			exit(1);
 		}
 	}
@@ -1334,10 +1331,10 @@ static const Symbol _recolour_symbols[] = {
  */
 static PersonGraphics *ConvertPersonGraphicsNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "person_graphics");
+	ExpandNoExpression(ng->exprs, ng->pos, "person_graphics");
 	PersonGraphics *pg = new PersonGraphics;
 
-	Values vals("person_graphics", ng->line);
+	Values vals("person_graphics", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, true, _person_graphics_symbols);
 
 	pg->person_type = vals.GetNumber("person_type");
@@ -1347,11 +1344,11 @@ static PersonGraphics *ConvertPersonGraphicsNode(NodeGroup *ng)
 		if (vi.used) continue;
 		Recolouring *rc = dynamic_cast<Recolouring *>(vi.node_value);
 		if (rc == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a recolour node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a recolour node\n", vi.pos.ToString());
 			exit(1);
 		}
 		if (!pg->AddRecolour(rc->orig, rc->replace)) {
-			fprintf(stderr, "Error at line %d: Recolouring node cannot be stored (maximum is 3)\n", vi.line);
+			fprintf(stderr, "Error at %s: Recolouring node cannot be stored (maximum is 3)\n", vi.pos.ToString());
 			exit(1);
 		}
 		vi.used = true;
@@ -1368,10 +1365,10 @@ static PersonGraphics *ConvertPersonGraphicsNode(NodeGroup *ng)
  */
 static Recolouring *ConvertRecolourNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "recolour");
+	ExpandNoExpression(ng->exprs, ng->pos, "recolour");
 	Recolouring *rc = new Recolouring;
 
-	Values vals("recolour", ng->line);
+	Values vals("recolour", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false, _recolour_symbols);
 
 	rc->orig = vals.GetNumber("original");
@@ -1388,10 +1385,10 @@ static Recolouring *ConvertRecolourNode(NodeGroup *ng)
  */
 static FrameData *ConvertFrameDataNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "frame_data");
+	ExpandNoExpression(ng->exprs, ng->pos, "frame_data");
 	FrameData *fd = new FrameData;
 
-	Values vals("frame_data", ng->line);
+	Values vals("frame_data", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	fd->duration = vals.GetNumber("duration");
@@ -1402,12 +1399,17 @@ static FrameData *ConvertFrameDataNode(NodeGroup *ng)
 	return fd;
 }
 
+/**
+ * Convert a 'BDIR' game node.
+ * @param ng Generic tree of nodes to convert.
+ * @return The converted BDIR game block.
+ */
 static BDIRBlock *ConvertBDIRNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "BDIR");
+	ExpandNoExpression(ng->exprs, ng->pos, "BDIR");
 	BDIRBlock *bb = new BDIRBlock;
 
-	Values vals("BDIR", ng->line);
+	Values vals("BDIR", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	bb->tile_width = vals.GetNumber("tile_width");
@@ -1442,10 +1444,10 @@ static const Symbol _shop_symbols[] = {
  */
 static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "SHOP");
+	ExpandNoExpression(ng->exprs, ng->pos, "SHOP");
 	SHOPBlock *sb = new SHOPBlock;
 
-	Values vals("SHOP", ng->line);
+	Values vals("SHOP", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, true, _shop_symbols);
 
 	sb->tile_width = vals.GetNumber("tile_width");
@@ -1462,7 +1464,7 @@ static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
 	sb->item_type[0] = vals.GetNumber("type_item1");
 	sb->item_type[1] = vals.GetNumber("type_item2");
 	sb->shop_text = vals.GetStrings("texts");
-	sb->shop_text->CheckTranslations(_shops_string_names, lengthof(_shops_string_names), ng->line);
+	sb->shop_text->CheckTranslations(_shops_string_names, lengthof(_shops_string_names), ng->pos);
 
 	int free_recolour = 0;
 	for (int i = 0; i < vals.unnamed_count; i++) {
@@ -1470,11 +1472,11 @@ static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
 		if (vi.used) continue;
 		Recolouring *rc = dynamic_cast<Recolouring *>(vi.node_value);
 		if (rc == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a \"recolour\" node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a \"recolour\" node\n", vi.pos.ToString());
 			exit(1);
 		}
 		if (free_recolour >= 3) {
-			fprintf(stderr, "Error at line %d: Recolouring node cannot be stored (maximum is 3)\n", vi.line);
+			fprintf(stderr, "Error at %s: Recolouring node cannot be stored (maximum is 3)\n", vi.pos.ToString());
 			exit(1);
 		}
 		sb->recol[free_recolour] = *rc;
@@ -1486,12 +1488,17 @@ static SHOPBlock *ConvertSHOPNode(NodeGroup *ng)
 	return sb;
 }
 
+/**
+ * Convert a node group to a GSLP game block.
+ * @param ng Generic tree of nodes to convert.
+ * @return The created GSLP game block.
+ */
 static GSLPBlock *ConvertGSLPNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "GSLP");
+	ExpandNoExpression(ng->exprs, ng->pos, "GSLP");
 	GSLPBlock *gb = new GSLPBlock;
 
-	Values vals("GSLP", ng->line);
+	Values vals("GSLP", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	gb->vert_down = vals.GetSprite("vert_down");
@@ -1508,7 +1515,7 @@ static GSLPBlock *ConvertGSLPNode(NodeGroup *ng)
 	gb->close_button = vals.GetSprite("close_button");
 	gb->terraform_dot = vals.GetSprite("terraform_dot");
 	gb->gui_text = vals.GetStrings("texts");
-	gb->gui_text->CheckTranslations(_gui_string_names, lengthof(_gui_string_names), ng->line);
+	gb->gui_text->CheckTranslations(_gui_string_names, lengthof(_gui_string_names), ng->pos);
 
 	vals.VerifyUsage();
 	return gb;
@@ -1521,10 +1528,10 @@ static GSLPBlock *ConvertGSLPNode(NodeGroup *ng)
  */
 Strings *ConvertStringsNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "strings");
+	ExpandNoExpression(ng->exprs, ng->pos, "strings");
 	Strings *strs = new Strings;
 
-	Values vals("strings", ng->line);
+	Values vals("strings", ng->pos);
 	vals.PrepareNamedValues(ng->values, false, true);
 
 	for (int i = 0; i < vals.unnamed_count; i++) {
@@ -1532,19 +1539,19 @@ Strings *ConvertStringsNode(NodeGroup *ng)
 		if (vi.used) continue;
 		TextNode *tn = dynamic_cast<TextNode *>(vi.node_value);
 		if (tn == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a \"string\" node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a \"string\" node\n", vi.pos.ToString());
 			exit(1);
 		}
 		std::set<TextNode>::iterator iter = strs->texts.find(*tn);
 		if (iter != strs->texts.end()) {
 			for (int j = 0; j < LNG_COUNT; j++) {
-				if (tn->lines[j] >= 0) {
-					if ((*iter).lines[j] >= 0) {
-						fprintf(stderr, "Error at line %d: \"string\" node conflicts with line %d\n",
-								tn->lines[j], (*iter).lines[j]);
+				if (tn->pos[j].line >= 0) {
+					if ((*iter).pos[j].line >= 0) {
+						fprintf(stderr, "Error at %s: ", tn->pos[j].ToString());
+						fprintf(stderr, "\"string\" node conflicts with %s\n", (*iter).pos[j].ToString());
 						exit(1);
 					}
-					(*iter).lines[j] = tn->lines[j];
+					(*iter).pos[j] = tn->pos[j];
 					(*iter).texts[j] = tn->texts[j];
 				}
 			}
@@ -1565,18 +1572,18 @@ Strings *ConvertStringsNode(NodeGroup *ng)
  */
 TextNode *ConvertTextNode(NodeGroup *ng)
 {
-	ExpandNoExpression(ng->exprs, ng->line, "string");
+	ExpandNoExpression(ng->exprs, ng->pos, "string");
 	TextNode *tn = new TextNode;
 
-	Values vals("string", ng->line);
+	Values vals("string", ng->pos);
 	vals.PrepareNamedValues(ng->values, true, false);
 
 	tn->name = vals.GetString("name");
 	ValueInformation &vi = vals.FindValue("lang");
-	int lng = GetLanguageIndex(vi.GetString(ng->line, "string").c_str(), vi.line);
+	int lng = GetLanguageIndex(vi.GetString(ng->pos, "string").c_str(), vi.pos);
 	vi = vals.FindValue("text");
-	tn->lines[lng] = vi.line;
-	tn->texts[lng] = vi.GetString(ng->line, "string");
+	tn->pos[lng] = vi.pos;
+	tn->texts[lng] = vi.GetString(ng->pos, "string");
 
 	vals.VerifyUsage();
 	return tn;
@@ -1620,7 +1627,7 @@ static BlockNode *ConvertNodeGroup(NodeGroup *ng)
 	if (strcmp(ng->name, "GSLP") == 0) return ConvertGSLPNode(ng);
 
 	/* Unknown type of node. */
-	fprintf(stderr, "Error at line %d: Do not know how to check and simplify node \"%s\"\n", ng->line, ng->name);
+	fprintf(stderr, "Error at %s: Do not know how to check and simplify node \"%s\"\n", ng->pos.ToString(), ng->name);
 	exit(1);
 }
 
@@ -1635,7 +1642,7 @@ FileNodeList *CheckTree(NamedValueList *values)
 	assert(sizeof(_foundation_sprite) / sizeof(_foundation_sprite[0]) == FOUNDATION_COUNT);
 
 	FileNodeList *file_nodes = new FileNodeList;
-	Values vals("root", 1);
+	Values vals("root", Position("", 1));
 	vals.PrepareNamedValues(values, false, true);
 
 	for (int i = 0; i < vals.unnamed_count; i++) {
@@ -1643,7 +1650,7 @@ FileNodeList *CheckTree(NamedValueList *values)
 		if (vi.used) continue;
 		FileNode *fn = dynamic_cast<FileNode *>(vi.node_value);
 		if (fn == NULL) {
-			fprintf(stderr, "Error at line %d: Node is not a file node\n", vi.line);
+			fprintf(stderr, "Error at %s: Node is not a file node\n", vi.pos.ToString());
 			exit(1);
 		}
 		file_nodes->files.push_back(fn);

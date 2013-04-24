@@ -13,6 +13,23 @@
 #define AST_H
 
 #include <list>
+#include <string>
+
+/** Position in a source file. */
+class Position {
+public:
+	Position();
+	Position(const char *filename, int line);
+	Position(std::string &filename, int line);
+	Position(const Position &pos);
+	Position &operator=(const Position &pos);
+	~Position();
+
+	const char *ToString() const;
+
+	std::string filename; ///< File containing the line.
+	int line;             ///< Number of the line referred to.
+};
 
 /** A Symbol in a 'symboltable'. */
 struct Symbol {
@@ -23,12 +40,12 @@ struct Symbol {
 /** Base class of expressions. */
 class Expression {
 public:
-	Expression(int line);
+	Expression(const Position &pos);
 	virtual ~Expression();
 
 	virtual Expression *Evaluate(const Symbol *symbols) const = 0;
 
-	int line; ///< Line number of the expression.
+	const Position pos; ///< %Position of the expression.
 };
 
 /** A sequence of expressions. */
@@ -43,7 +60,7 @@ public:
 /** Unary operator expression. */
 class UnaryOperator : public Expression {
 public:
-	UnaryOperator(int line, int oper, Expression *child);
+	UnaryOperator(const Position &pos, int oper, Expression *child);
 	/* virtual */ ~UnaryOperator();
 
 	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
@@ -55,7 +72,7 @@ public:
 /** String literal elementary expression node. */
 class StringLiteral : public Expression {
 public:
-	StringLiteral(int line, char *text);
+	StringLiteral(const Position &pos, char *text);
 	/* virtual */ ~StringLiteral();
 
 	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
@@ -68,7 +85,7 @@ public:
 /** Identifier elementary expression node. */
 class IdentifierLiteral : public Expression {
 public:
-	IdentifierLiteral(int line, char *name);
+	IdentifierLiteral(const Position &pos, char *name);
 	/* virtual */ ~IdentifierLiteral();
 
 	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
@@ -79,7 +96,7 @@ public:
 /** Number literal elementary expression node. */
 class NumberLiteral : public Expression {
 public:
-	NumberLiteral(int line, long long value);
+	NumberLiteral(const Position &pos, long long value);
 	/* virtual */ ~NumberLiteral();
 
 	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
@@ -90,7 +107,7 @@ public:
 /** Bit set expression ('or' of '1 << arg'). */
 class BitSet : public Expression {
 public:
-	BitSet(int line, ExpressionList *args);
+	BitSet(const Position &pos, ExpressionList *args);
 	/* virtual */ ~BitSet();
 
 	/* virtual */ Expression *Evaluate(const Symbol *symbols) const;
@@ -104,36 +121,36 @@ public:
 	Name();
 	virtual ~Name();
 
-	virtual int GetLine() const = 0;
+	virtual const Position &GetPosition() const = 0;
 	virtual int GetNameCount() const = 0;
 };
 
 /** Label of a named value containing a single name. */
 class SingleName : public Name {
 public:
-	SingleName(int line, char *name);
+	SingleName(const Position &pos, char *name);
 	/* virtual */ ~SingleName();
 
-	/* virtual */ int GetLine() const;
+	/* virtual */ const Position &GetPosition() const;
 	/* virtual */ int GetNameCount() const;
 
-	int line;   ///< Line number of the label.
-	char *name; ///< The label itself.
+	const Position pos; ///< %Position of the label.
+	char *name;         ///< The label itself.
 };
 
-/** Somewhat generic class for storing an identifier and its line number. */
+/** Somewhat generic class for storing an identifier and its position. */
 class IdentifierLine {
 public:
-	IdentifierLine(int line, char *name);
+	IdentifierLine(const Position &pos, char *name);
 	IdentifierLine(const IdentifierLine &il);
 	IdentifierLine &operator=(const IdentifierLine &il);
 	~IdentifierLine();
 
-	int GetLine() const;
+	const Position &GetPosition() const;
 	bool IsValid() const;
 
-	int line;   ///< Line number of the label.
-	char *name; ///< The label itself.
+	Position pos; ///< %Position of the label.
+	char *name;   ///< The label itself.
 };
 
 /** A row of identifiers. */
@@ -142,7 +159,7 @@ public:
 	NameRow();
 	~NameRow();
 
-	int GetLine() const;
+	const Position &GetPosition() const;
 	int GetNameCount() const;
 
 	std::list<IdentifierLine *> identifiers; ///< Identifiers in this row.
@@ -154,7 +171,7 @@ public:
 	NameTable();
 	/* virtual */ ~NameTable();
 
-	/* virtual */ int GetLine() const;
+	/* virtual */ const Position &GetPosition() const;
 	/* virtual */ int GetNameCount() const;
 
 	std::list<NameRow *> rows; ///< Rows of the table.
@@ -170,7 +187,7 @@ public:
 	Group();
 	virtual ~Group();
 
-	virtual int GetLine() const = 0;
+	virtual const Position &GetPosition() const = 0;
 	virtual NodeGroup *CastToNodeGroup();
 	virtual ExpressionGroup *CastToExpressionGroup();
 };
@@ -178,15 +195,15 @@ public:
 /** Value part consisting of a node. */
 class NodeGroup : public Group {
 public:
-	NodeGroup(int line, char *name, ExpressionList *exprs, NamedValueList *values);
+	NodeGroup(const Position &pos, char *name, ExpressionList *exprs, NamedValueList *values);
 	/* virtual */ ~NodeGroup();
 
-	/* virtual */ int GetLine() const;
+	/* virtual */ const Position &GetPosition() const;
 	/* virtual */ NodeGroup *CastToNodeGroup();
 
 	void HandleImports();
 
-	int line;               ///< Line number of the node name.
+	const Position pos;     ///< %Position of the node name.
 	char *name;             ///< Node name itself.
 	ExpressionList *exprs;  ///< Parameters of the node.
 	NamedValueList *values; ///< Named values of the node.
@@ -198,7 +215,7 @@ public:
 	ExpressionGroup(Expression *expr);
 	/* virtual */ ~ExpressionGroup();
 
-	/* virtual */ int GetLine() const;
+	/* virtual */ const Position &GetPosition() const;
 	/* virtual */ ExpressionGroup *CastToExpressionGroup();
 
 	Expression *expr; ///< Expression to store.
@@ -225,15 +242,16 @@ public:
 	Group *group; ///< Value part.
 };
 
+/** Node to import another file. */
 class ImportValue : public BaseNamedValue {
 public:
-	ImportValue(int line, char *filename);
+	ImportValue(const Position &pos, char *filename);
 	/* virtual */ ~ImportValue();
 
 	/* virtual */ void HandleImports();
 
-	int line;       ///< Line number of the import.
-	char *filename; ///< Name of the file to import.
+	const Position pos; ///< %Position of the import.
+	char *filename;     ///< Name of the file to import.
 };
 
 /** Sequence of named values. */

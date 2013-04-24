@@ -3,6 +3,7 @@
 #include "tokens.h"
 
 int line = 1;
+std::string filename;
 char *text = NULL;
 int text_size = 0;
 int text_index;
@@ -165,11 +166,14 @@ int string_line; ///< Starting line of the string.
 
 /**
  * Setup the scanner for the new file.
+ * @param fname Name of the file being parsed.
  * @param new_file New input stream to switch to.
  */
-void SetupScanner(FILE *new_file)
+void SetupScanner(const char *fname, FILE *new_file)
 {
 	yyrestart(new_file);
 	BEGIN(INITIAL);
+
+	filename = (fname == NULL) ? "<stdin>" : fname;
 	line = 1;
 }

@@ -20,6 +20,7 @@
 class FileWriter;
 class FileBlock;
 class NamedValueList;
+class Position;
 
 /** Base class for all nodes. */
 class BlockNode {
@@ -27,7 +28,7 @@ public:
 	BlockNode();
 	virtual ~BlockNode();
 
-	virtual BlockNode *GetSubNode(int row, int col, char *name, int line);
+	virtual BlockNode *GetSubNode(int row, int col, char *name, const Position &pos);
 };
 
 /** Base class for game blocks. */
@@ -101,14 +102,14 @@ public:
 /** Block containing a sprite sheet. */
 class SheetBlock : public BlockNode {
 public:
-	SheetBlock(int line);
+	SheetBlock(const Position &pos);
 	/* virtual */ ~SheetBlock();
 
 
-	/* virtual */ BlockNode *GetSubNode(int row, int col, char *name, int line);
+	/* virtual */ BlockNode *GetSubNode(int row, int col, char *name, const Position &pos);
 	Image *GetSheet();
 
-	int line;         ///< Line number defining the sheet.
+	Position pos;     ///< Line number defining the sheet.
 	std::string file; ///< %Name of the file containing the sprite sheet.
 	int x_base;       ///< Horizontal base offset in the sheet.
 	int y_base;       ///< Vertical base offset in the sheet.
@@ -451,7 +452,7 @@ enum Languages {
 	LNG_COUNT,   ///< Number of known languages.
 };
 
-int GetLanguageIndex(const char *lname, int line);
+int GetLanguageIndex(const char *lname, const Position &pos);
 
 /** Texts of a single string. */
 class TextNode : public BlockNode {
@@ -464,7 +465,7 @@ public:
 
 	std::string name;                     ///< Name of the textnode (used as key).
 	mutable std::string texts[LNG_COUNT]; ///< Text of the text node, in each language.
-	mutable int lines[LNG_COUNT];         ///< Line numbers defining the text (negative means undefined).
+	mutable Position pos[LNG_COUNT];      ///< Positions defining the text (negative lines means undefined).
 };
 
 /**
@@ -484,7 +485,7 @@ public:
 	Strings();
 	/* virtual */ ~Strings();
 
-	void CheckTranslations(const char *names[], int name_count, int line);
+	void CheckTranslations(const char *names[], int name_count, const Position &pos);
 	int Write(FileWriter *fw);
 
 	std::set<TextNode> texts; ///< Translated text nodes.
@@ -513,6 +514,7 @@ public:
 	Strings *shop_text;   ///< Texts of the shop.
 };
 
+/** GBOR game block. */
 class GBORBlock : public GameBlock {
 public:
 	GBORBlock();
@@ -540,6 +542,7 @@ public:
 	SpriteBlock *br;   ///< Bottom-right sprite.
 };
 
+/** GCHK game block. */
 class GCHKBlock : public GameBlock {
 public:
 	GCHKBlock();
@@ -556,6 +559,7 @@ public:
 	SpriteBlock *shaded_filled;  ///< Shaded filled button.
 };
 
+/** GSLI game block. */
 class GSLIBlock : public GameBlock {
 public:
 	GSLIBlock();
@@ -573,6 +577,7 @@ public:
 	SpriteBlock *slider; ///< Slider button.
 };
 
+/** GSCL game block. */
 class GSCLBlock : public GameBlock {
 public:
 	GSCLBlock();
@@ -600,6 +605,7 @@ public:
 	SpriteBlock *right_top_pressed;  ///< Right/down pressed bar top.
 };
 
+/** BDIR game block. */
 class BDIRBlock : public GameBlock {
 public:
 	BDIRBlock();
@@ -614,6 +620,7 @@ public:
 	SpriteBlock *sprite_nw; ///< nw arrow.
 };
 
+/** GSLP Game block. */
 class GSLPBlock : public GameBlock {
 public:
 	GSLPBlock();

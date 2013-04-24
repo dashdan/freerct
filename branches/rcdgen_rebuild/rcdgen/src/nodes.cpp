@@ -10,6 +10,7 @@
 /** @file nodes.cpp Code of the RCD file nodes. */
 
 #include "stdafx.h"
+#include "ast.h"
 #include "nodes.h"
 #include "fileio.h"
 
@@ -26,14 +27,14 @@ BlockNode::~BlockNode()
  * @param row Row of the sub node.
  * @param col Column of the sub node.
  * @param name Variable name to receive the sub node (for error reporting only).
- * @param line Line number containing the variable name (for error reporting only).
+ * @param pos %Position containing the variable name (for error reporting only).
  * @return The requested sub node.
  * @note The default implementation always fails, override to get the feature.
  */
-/* virtual */ BlockNode *BlockNode::GetSubNode(int row, int col, char *name, int line)
+/* virtual */ BlockNode *BlockNode::GetSubNode(int row, int col, char *name, const Position &pos)
 {
 	/* By default, fail. */
-	fprintf(stderr, "Error at line %d: Cannot assign sub node (row=%d, column=%d) to variable \"%s\"\n", line, row, col, name);
+	fprintf(stderr, "Error at %s: Cannot assign sub node (row=%d, column=%d) to variable \"%s\"\n", pos.ToString(), row, col, name);
 	exit(1);
 }
 
@@ -142,11 +143,10 @@ int SpriteBlock::Write(FileWriter *fw)
 
 /**
  * Constructor of a sprite sheet.
- * @param line Line number of the sheet node.
+ * @param pos %Position of the sheet node.
  */
-SheetBlock::SheetBlock(int line)
+SheetBlock::SheetBlock(const Position &pos) : pos(pos)
 {
-	this->line = line;
 	this->img_sheet = NULL;
 }
 
@@ -166,20 +166,20 @@ Image *SheetBlock::GetSheet()
 	this->img_sheet = new Image;
 	const char *err = this->img_sheet->LoadFile(file.c_str());
 	if (err != NULL) {
-		fprintf(stderr, "Error at line %d, loading of the sheet-image failed: %s\n", this->line, err);
+		fprintf(stderr, "Error at %s, loading of the sheet-image failed: %s\n", this->pos.ToString(), err);
 		exit(1);
 	}
 	return this->img_sheet;
 }
 
-/* virtual */ BlockNode *SheetBlock::GetSubNode(int row, int col, char *name, int line)
+/* virtual */ BlockNode *SheetBlock::GetSubNode(int row, int col, char *name, const Position &pos)
 {
 	Image *img = this->GetSheet();
 	SpriteBlock *spr_blk = new SpriteBlock;
 	const char *err = spr_blk->sprite_image.CopySprite(img, this->x_offset, this->y_offset,
 			this->x_base + this->x_step * col, this->y_base + this->y_step * row, this->width, this->height);
 	if (err != NULL) {
-		fprintf(stderr, "Error at line %d, loading of the sprite for \"%s\" failed: %s\n", line, name, err);
+		fprintf(stderr, "Error at %s, loading of the sprite for \"%s\" failed: %s\n", pos.ToString(), name, err);
 		exit(1);
 	}
 	return spr_blk;
@@ -500,22 +500,22 @@ static const char *_languages[] = {
 /**
  * Get the index of a language from its name.
  * @param lname Name of the language.
- * @param line Line number stating the name.
+ * @param pos %Position stating the name.
  * @return Index of the given language.
  */
-int GetLanguageIndex(const char *lname, int line)
+int GetLanguageIndex(const char *lname, const Position &pos)
 {
 	assert(LNG_COUNT == sizeof(_languages) / sizeof(char *));
 	for (int i = 0; i < LNG_COUNT; i++) {
 		if (strcmp(_languages[i], lname) == 0) return i;
 	}
-	fprintf(stderr, "Error at line %d: Language \"%s\" is not known", line, lname);
+	fprintf(stderr, "Error at %s: Language \"%s\" is not known", pos.ToString(), lname);
 	exit(1);
 }
 
 TextNode::TextNode() : BlockNode()
 {
-	for (int i = 0; i < LNG_COUNT; i++) this->lines[i] = -1;
+	for (int i = 0; i < LNG_COUNT; i++) this->pos[i] = Position("", -1);
 }
 
 /* virtual */ TextNode::~TextNode()
@@ -530,7 +530,7 @@ int TextNode::GetSize() const
 {
 	int length = 2 + 1 + this->name.size() + 1;
 	for (int i = 0; i < LNG_COUNT; i++) {
-		if (this->lines[i] < 0) continue;
+		if (this->pos[i].line < 0) continue;
 		length += 2 + (1 + strlen(_languages[i]) + 1) + this->texts[i].size() + 1;
 	}
 	return length;
@@ -552,7 +552,7 @@ void TextNode::Write(FileBlock *fb) const
 	fb->SaveUInt8(0);
 	length -= 1 + this->name.size() + 1;
 	for (int i = 1; i < LNG_COUNT; i++) {
-		if (this->lines[i] < 0) continue;
+		if (this->pos[i].line < 0) continue;
 		int lname_length = strlen(_languages[i]);
 		int lng_size = 2 + (1 + lname_length + 1) + this->texts[i].size() + 1;
 		fb->SaveUInt16(lng_size);
@@ -564,7 +564,7 @@ void TextNode::Write(FileBlock *fb) const
 		fb->SaveUInt8(0);
 		length -= this->texts[i].size() + 1;
 	}
-	assert(this->lines[0] >= 0);
+	assert(this->pos[0].line >= 0);
 	int lng_size = 2 + (1 + 0 + 1) + this->texts[0].size() + 1;
 	fb->SaveUInt16(lng_size);
 	fb->SaveUInt8(1);
@@ -588,9 +588,9 @@ Strings::~Strings()
  * Verify whether the strings are all valid.
  * @param names Expected string names.
  * @param name_count Number of names in \a names.
- * @param line Line number of the surrounding node (for error reporting).
+ * @param pos %Position of the surrounding node (for error reporting).
  */
-void Strings::CheckTranslations(const char *names[], int name_count, int line)
+void Strings::CheckTranslations(const char *names[], int name_count, const Position &pos)
 {
 	/* Check that all necessary strings exist. */
 	TextNode tn;
@@ -598,14 +598,14 @@ void Strings::CheckTranslations(const char *names[], int name_count, int line)
 		tn.name = names[i];
 		std::set<TextNode>::iterator iter = this->texts.find(tn);
 		if (iter == this->texts.end()) {
-			fprintf(stderr, "Error at line %d: String \"%s\" is not defined\n", line, names[i]);
+			fprintf(stderr, "Error at %s: String \"%s\" is not defined\n", pos.ToString(), names[i]);
 			exit(1);
 		}
 	}
 	/* Check that all strings have a default text. */
 	for (std::set<TextNode>::const_iterator iter = this->texts.begin(); iter != this->texts.end(); iter++) {
-		if ((*iter).lines[0] < 0) {
-			fprintf(stderr, "Error at line %d: String \"%s\" has no default language text\n", line, (*iter).name.c_str());
+		if ((*iter).pos[0].line < 0) {
+			fprintf(stderr, "Error at %s: String \"%s\" has no default language text\n", pos.ToString(), (*iter).name.c_str());
 			exit(1);
 		}
 	}

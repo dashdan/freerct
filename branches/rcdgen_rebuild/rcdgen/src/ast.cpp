@@ -13,6 +13,73 @@
 #include "ast.h"
 #include "scanner_funcs.h"
 
+Position::Position()
+{
+	this->filename = "unknown";
+	this->line = 0;
+}
+
+/**
+ * Constructor of a position.
+ * @param filename Name of the file containing the position.
+ * @param line Line number in the file.
+ */
+Position::Position(const char *filename, int line)
+{
+	this->filename = filename;
+	this->line = line;
+}
+
+/**
+ * Constructor of a position.
+ * @param filename Name of the file containing the position.
+ * @param line Line number in the file.
+ */
+Position::Position(std::string &filename, int line)
+{
+	this->filename = filename;
+	this->line = line;
+}
+
+/**
+ * Constructor of a position.
+ * @param pos %Position to copy.
+ */
+Position::Position(const Position &pos)
+{
+	this->filename = pos.filename;
+	this->line = pos.line;
+}
+
+/**
+ * Assignment of a position.
+ * @param pos %Position to copy.
+ * @return The assigned object.
+ */
+Position &Position::operator=(const Position &pos)
+{
+	if (&pos != this) {
+		this->filename = pos.filename;
+		this->line = pos.line;
+	}
+	return *this;
+}
+
+Position::~Position()
+{
+}
+
+/**
+ * Construct a human-readable position string.
+ * @return Human-readable indication of a position (filename and line number).
+ */
+const char *Position::ToString() const
+{
+	static char buffer[256];
+	snprintf(buffer, 255, "\"%s\" line %d", this->filename.c_str(), this->line);
+	return buffer;
+}
+
 ExpressionList::ExpressionList()
 {
 }
@@ -26,11 +93,10 @@ ExpressionList::~ExpressionList()
 
 /**
  * Constructor of the base expression class.
- * @param line Line number of the expression node.
+ * @param pos %Position of the expression node.
  */
-Expression::Expression(int line)
+Expression::Expression(const Position &pos) : pos(pos)
 {
-	this->line = line;
 }
 
 Expression::~Expression()
@@ -46,11 +112,11 @@ Expression::~Expression()
 
 /**
  * Unary expression.
- * @param line Line number of the operator.
+ * @param pos %Position of the operator.
  * @param oper Unary operator. Only \c '-' is supported currently.
  * @param child Sub-exoression.
  */
-UnaryOperator::UnaryOperator(int line, int oper, Expression *child) : Expression(line)
+UnaryOperator::UnaryOperator(const Position &pos, int oper, Expression *child) : Expression(pos)
 {
 	this->oper = oper;
 	this->child = child;
@@ -69,16 +135,16 @@ Expression *UnaryOperator::Evaluate(const Symbol *symbols) const
 		number->value = -number->value;
 		return number;
 	}
-	fprintf(stderr, "Evaluate error at line %d: Cannot negate the value of the child expression", this->line);
+	fprintf(stderr, "Evaluate error at %s: Cannot negate the value of the child expression", this->pos.ToString());
 	exit(1);
 }
 
 /**
  * A string literal as elementary expression.
- * @param line Line number of the string literal.
+ * @param pos %Position of the string literal.
  * @param text String literal content itself.
  */
-StringLiteral::StringLiteral(int line, char *text) : Expression(line)
+StringLiteral::StringLiteral(const Position &pos, char *text) : Expression(pos)
 {
 	this->text = text;
 }
@@ -91,7 +157,7 @@ StringLiteral::~StringLiteral()
 Expression *StringLiteral::Evaluate(const Symbol *symbols) const
 {
 	char *copy = this->CopyText();
-	return new StringLiteral(this->line, copy);
+	return new StringLiteral(this->pos, copy);
 }
 
 /**
@@ -108,10 +174,10 @@ char *StringLiteral::CopyText() const
 
 /**
  * An identifier as elementary expression.
- * @param line Line number of the identifier.
+ * @param pos %Position of the identifier.
  * @param name The identifier to store.
  */
-IdentifierLiteral::IdentifierLiteral(int line, char *name) : Expression(line)
+IdentifierLiteral::IdentifierLiteral(const Position &pos, char *name) : Expression(pos)
 {
 	this->name = name;
 }
@@ -126,20 +192,20 @@ Expression *IdentifierLiteral::Evaluate(const Symbol *symbols) const
 	if (symbols != NULL) {
 		for (;;) {
 			if (symbols->name == NULL) break;
-			if (strcmp(symbols->name, this->name) == 0) return new NumberLiteral(this->line, symbols->value);
+			if (strcmp(symbols->name, this->name) == 0) return new NumberLiteral(this->pos, symbols->value);
 			symbols++;
 		}
 	}
-	fprintf(stderr, "Evaluate error at line %d: Identifier \"%s\" is not known\n", this->line, this->name);
+	fprintf(stderr, "Evaluate error %s: Identifier \"%s\" is not known\n", this->pos.ToString(), this->name);
 	exit(1);
 }
 
 /**
  * A literal number as elementary expression.
- * @param line Line number of the value.
+ * @param pos %Position of the value.
  * @param value The number itself.
  */
-NumberLiteral::NumberLiteral(int line, long long value) : Expression(line)
+NumberLiteral::NumberLiteral(const Position &pos, long long value) : Expression(pos)
 {
 	this->value = value;
 }
@@ -150,15 +216,15 @@ NumberLiteral::~NumberLiteral()
 
 Expression *NumberLiteral::Evaluate(const Symbol *symbols) const
 {
-	return new NumberLiteral(this->line, this->value);
+	return new NumberLiteral(this->pos, this->value);
 }
 
 /**
  * Constructor of a bitset expression node.
- * @param line Line number that uses the 'bitset' node.
+ * @param pos %Position that uses the 'bitset' node.
  * @param args Arguments of the bitsset node, may be \c NULL.
  */
-BitSet::BitSet(int line, ExpressionList *args) : Expression(line)
+BitSet::BitSet(const Position &pos, ExpressionList *args) : Expression(pos)
 {
 	this->args = args;
 }
@@ -176,14 +242,14 @@ Expression *BitSet::Evaluate(const Symbol *symbols) const
 			Expression *e = (*iter)->Evaluate(symbols);
 			NumberLiteral *nl = dynamic_cast<NumberLiteral *>(e);
 			if (nl == NULL) {
-				fprintf(stderr, "Error at line %d: Bit set argument is not an number\n", (*iter)->line);
+				fprintf(stderr, "Error at %s: Bit set argument is not an number\n", (*iter)->pos.ToString());
 				exit(1);
 			}
 			value |= 1ll << nl->value;
 			delete e;
 		}
 	}
-	return new NumberLiteral(this->line, value);
+	return new NumberLiteral(this->pos, value);
 }
 
 
@@ -195,9 +261,9 @@ Name::~Name() {
 }
 
 /**
- * \fn Name::GetLine() const
- * Get a line number representing the name (group).
- * @return Line number pointing to the name part.
+ * \fn Name::GetPosition() const
+ * Get a position representing the name (group).
+ * @return %Position pointing to the name part.
  */
 
 /**
@@ -208,12 +274,11 @@ Name::~Name() {
 
 /**
  * A name for a group consisting of a single label.
- * @param line Line number of the label name.
+ * @param pos %Position of the label name.
  * @param name The label name itself.
  */
-SingleName::SingleName(int line, char *name) : Name()
+SingleName::SingleName(const Position &pos, char *name) : Name(), pos(pos)
 {
-	this->line = line;
 	this->name = name;
 }
 
@@ -222,9 +287,9 @@ SingleName::~SingleName()
 	free(this->name);
 }
 
-int SingleName::GetLine() const
+const Position &SingleName::GetPosition() const
 {
-	return this->line;
+	return this->pos;
 }
 
 int SingleName::GetNameCount() const
@@ -234,12 +299,11 @@ int SingleName::GetNameCount() const
 
 /**
  * An identifier with a line number.
- * @param line Line number of the name.
+ * @param pos %Position of the name.
  * @param name The identifier to store.
  */
-IdentifierLine::IdentifierLine(int line, char *name)
+IdentifierLine::IdentifierLine(const Position &pos, char *name) : pos(pos)
 {
-	this->line = line;
 	this->name = name;
 }
 
@@ -247,9 +311,8 @@ IdentifierLine::IdentifierLine(int line, char *name)
  * Copy constructor.
  * @param il Existing identifier line to copy.
  */
-IdentifierLine::IdentifierLine(const IdentifierLine &il)
+IdentifierLine::IdentifierLine(const IdentifierLine &il) : pos(il.pos)
 {
-	this->line = il.line;
 	int length = strlen(il.name);
 	this->name = (char *)malloc(length + 1);
 	memcpy(this->name, il.name, length + 1);
@@ -265,7 +328,7 @@ IdentifierLine &IdentifierLine::operator=(const IdentifierLine &il)
 	if (&il == this) return *this;
 	free(this->name);
 
-	this->line = il.line;
+	this->pos = il.pos;
 	int length = strlen(il.name);
 	this->name = (char *)malloc(length + 1);
 	memcpy(this->name, il.name, length + 1);
@@ -278,12 +341,12 @@ IdentifierLine::~IdentifierLine()
 }
 
 /**
- * Retrieve a line number for this identifier.
- * @return Line number.
+ * Retrieve a position for this identifier.
+ * @return The position.
  */
-int IdentifierLine::GetLine() const
+const Position &IdentifierLine::GetPosition() const
 {
-	return this->line;
+	return this->pos;
 }
 
 /**
@@ -308,14 +371,16 @@ NameRow::~NameRow()
 	}
 }
 
+static const Position _dummy_position("", -1); ///< Dummy position.
+
 /**
  * Get a line number of the row, or \c 0 if none is available.
- * @return Line number of the row.
+ * @return %Position of the row.
  */
-int NameRow::GetLine() const
+const Position &NameRow::GetPosition() const
 {
-	if (this->identifiers.size() > 0) return this->identifiers.front()->GetLine();
-	return 0;
+	if (this->identifiers.size() > 0) return this->identifiers.front()->GetPosition();
+	return _dummy_position;
 }
 
 /**
@@ -342,13 +407,13 @@ NameTable::~NameTable()
 	}
 }
 
-int NameTable::GetLine() const
+const Position &NameTable::GetPosition() const
 {
 	for (std::list<NameRow *>::const_iterator iter = this->rows.begin(); iter != this->rows.end(); iter++) {
-		int line = (*iter)->GetLine();
-		if (line > 0) return line;
+		const Position &pos = (*iter)->GetPosition();
+		if (pos.line > 0) return pos;
 	}
-	return 0;
+	return _dummy_position;
 }
 
 int NameTable::GetNameCount() const
@@ -369,9 +434,9 @@ Group::~Group()
 }
 
 /**
- * \fn Group::GetLine() const
- * Get a line number representing the name (group).
- * @return Line number pointing to the name part.
+ * \fn Group::GetPosition() const
+ * Get a position representing the name (group).
+ * @return %Position pointing to the name part.
  */
 
 /**
@@ -394,14 +459,13 @@ Group::~Group()
 
 /**
  * Construct a node.
- * @param line Line number of the label name.
+ * @param pos %Position of the label name.
  * @param name The label name itself.
  * @param exprs Actual parameters of the node.
  * @param values Named values of the node.
  */
-NodeGroup::NodeGroup(int line, char *name, ExpressionList *exprs, NamedValueList *values) : Group()
+NodeGroup::NodeGroup(const Position &pos, char *name, ExpressionList *exprs, NamedValueList *values) : Group(), pos(pos)
 {
-	this->line = line;
 	this->name = name;
 	this->exprs = exprs;
 	this->values = values;
@@ -414,9 +478,9 @@ NodeGroup::~NodeGroup()
 	delete this->values;
 }
 
-/* virtual */ int NodeGroup::GetLine() const
+/* virtual */ const Position &NodeGroup::GetPosition() const
 {
-	return this->line;
+	return this->pos;
 }
 
 /* virtual */ NodeGroup *NodeGroup::CastToNodeGroup()
@@ -424,6 +488,7 @@ NodeGroup::~NodeGroup()
 	return this;
 }
 
+/** Handle imports in the body. */
 void NodeGroup::HandleImports()
 {
 	this->values->HandleImports();
@@ -443,9 +508,9 @@ ExpressionGroup::~ExpressionGroup()
 	delete this->expr;
 }
 
-/* virtual */ int ExpressionGroup::GetLine() const
+/* virtual */ const Position &ExpressionGroup::GetPosition() const
 {
-	return this->expr->line;
+	return this->expr->pos;
 }
 
 /* virtual */ ExpressionGroup *ExpressionGroup::CastToExpressionGroup()
@@ -460,6 +525,11 @@ BaseNamedValue::BaseNamedValue()
 BaseNamedValue::~BaseNamedValue()
 {
 }
+
+/**
+ * \fn  void BaseNamedValue::HandleImports()
+ * Perform the import operation.
+ */
 
 /**
  * Construct a value with a name.
@@ -484,9 +554,13 @@ void NamedValue::HandleImports()
 	if (ng != NULL) ng->HandleImports();
 }
 
-ImportValue::ImportValue(int line, char *filename) : BaseNamedValue()
+/**
+ * Constructor of the import class.
+ * @param pos %Position of the import.
+ * @param filename File name being imported.
+ */
+ImportValue::ImportValue(const Position &pos, char *filename) : BaseNamedValue(), pos(pos)
 {
-	this->line = line;
 	this->filename = filename;
 }
 
@@ -511,6 +585,7 @@ NamedValueList::~NamedValueList()
 	}
 }
 
+/** Handle imports in the body. */
 void NamedValueList::HandleImports()
 {
 	bool has_import = false;
@@ -520,7 +595,7 @@ void NamedValueList::HandleImports()
 		ImportValue *iv = dynamic_cast<ImportValue *>(*iter);
 		if (iv != NULL) {
 			has_import = true;
-			NamedValueList *nv = LoadFile(iv->filename, iv->line);
+			NamedValueList *nv = LoadFile(iv->filename, iv->pos.line);
 			for (std::list<BaseNamedValue *>::iterator iter2 = nv->values.begin(); iter2 != nv->values.end(); iter2++) {
 				values.push_back(*iter2);
 			}
@@ -573,7 +648,7 @@ NamedValueList *LoadFile(const char *filename, int line)
 		}
 	}
 	_parsed_data = NULL;
-	SetupScanner(infile);
+	SetupScanner(filename, infile);
 	yyparse();
 
 	if (infile != NULL) fclose(infile);
