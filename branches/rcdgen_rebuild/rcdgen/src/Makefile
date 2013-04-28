@@ -6,7 +6,7 @@
 # See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with FreeRCT. If not, see <http://www.gnu.org/licenses/>.
 #
 
-.PHONY: clean docs
+.PHONY: clean
 
 INCLUDES=
 LIBS=-lpng
@@ -41,10 +41,6 @@ tokens.h parser.cpp: parser.y
 
 scanner.cpp scanner.h: scanner.l
 	$(FLEX) --outfile=scanner.cpp scanner.l
-
-
-docs:
-	doxygen doxyfile
 
 ifndef NODEPS
 include $(DEPEND)
