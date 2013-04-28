@@ -1,1 +1,0 @@
-logo.blend requires the copyrighted Helvetica light standard (bold condensed) font file; "HelveticaLTStd-BoldCond.otf".
