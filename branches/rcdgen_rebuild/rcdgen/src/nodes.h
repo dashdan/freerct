@@ -649,5 +649,8 @@ public:
 
 FileNodeList *CheckTree(NamedValueList *values);
 
+void GenerateStringsHeaderFile(const char *prefix, const char *base, const char *header);
+void GenerateStringsCodeFile(const char *prefix, const char *base, const char *code);
+
 #endif
 

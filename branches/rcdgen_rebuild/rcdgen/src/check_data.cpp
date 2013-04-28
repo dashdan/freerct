@@ -1660,3 +1660,102 @@ FileNodeList *CheckTree(NamedValueList *values)
 	vals.VerifyUsage();
 	return file_nodes;
 }
+
+/**
+ * Generate a header file with string names.
+ * @param prefix Kind of strings (either \c "GUI" or \c "SHOPS").
+ * @param base Value of the first entry.
+ * @param header Name of the output header file.
+ */
+void GenerateStringsHeaderFile(const char *prefix, const char *base, const char *header)
+{
+	const char **names = NULL;
+	const char *nice_name = NULL;
+	uint length = 0;
+
+	if (strcmp(prefix, "GUI") == 0) {
+		names = _gui_string_names;
+		length = lengthof(_gui_string_names);
+		nice_name = "Gui";
+	} else if (strcmp(prefix, "SHOPS") == 0) {
+		names = _shops_string_names;
+		length = lengthof(_shops_string_names);
+		nice_name = "Shops";
+	} else {
+		fprintf(stderr, "ERROR: Prefix \"%s\" is not known.\n", prefix);
+		exit(1);
+	}
+
+	FILE *fp = fopen(header, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "ERROR: Cannot open header output file \"%s\" for writing.\n", header);
+		exit(1);
+	}
+	fprintf(fp, "// GUI string table for FreeRCT\n");
+	fprintf(fp, "// Automagically generated, do not edit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "#ifndef %s_STRING_TABLE_H\n", prefix);
+	fprintf(fp, "#define %s_STRING_TABLE_H\n", prefix);
+	fprintf(fp, "\n");
+	fprintf(fp, "/** %s strings table. */\n", nice_name);
+	fprintf(fp, "enum %sStrings {\n", nice_name);
+	for (uint i = 0; i < length; i++) {
+		if (i == 0) {
+			fprintf(fp, "\t%s_%s = %s,\n", prefix, names[i], base);
+		} else {
+			fprintf(fp, "\t%s_%s,\n", prefix, names[i]);
+		}
+	}
+	fprintf(fp, "\n");
+	fprintf(fp, "\t%s_STRING_TABLE_END,\n", prefix);
+	fprintf(fp, "};\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "#endif\n");
+	fclose(fp);
+}
+
+/**
+ * Generate a code file with string names.
+ * @param prefix Kind of strings (either \c "GUI" or \c "SHOPS").
+ * @param base Value of the first entry.
+ * @param code Name of the output code file.
+ */
+void GenerateStringsCodeFile(const char *prefix, const char *base, const char *code)
+{
+	const char **names = NULL;
+	const char *nice_name = NULL;
+	const char *lower_name = NULL;
+	uint length = 0;
+
+	if (strcmp(prefix, "GUI") == 0) {
+		names = _gui_string_names;
+		length = lengthof(_gui_string_names);
+		nice_name = "Gui";
+		lower_name = "gui";
+	} else if (strcmp(prefix, "SHOPS") == 0) {
+		names = _shops_string_names;
+		length = lengthof(_shops_string_names);
+		nice_name = "Shops";
+		lower_name = "shops";
+	} else {
+		fprintf(stderr, "ERROR: Prefix \"%s\" is not known.\n", prefix);
+		exit(1);
+	}
+
+	FILE *fp = fopen(code, "w");
+	if (fp == NULL) {
+		fprintf(stderr, "ERROR: Cannot open code output file \"%s\" for writing.\n", code);
+		exit(1);
+	}
+	fprintf(fp, "// GUI string table for FreeRCT\n");
+	fprintf(fp, "// Automagically generated, do not edit\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "/** %s string table array. */\n", nice_name);
+	fprintf(fp, "const char *_%s_strings_table[] = {\n", lower_name);
+	for (uint i = 0; i < length; i++) {
+		fprintf(fp, "\t\"%s\",\n", names[i]);
+	}
+	fprintf(fp, "\tNULL,\n");
+	fprintf(fp, "};\n");
+	fclose(fp);
+}

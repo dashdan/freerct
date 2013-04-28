@@ -16,7 +16,7 @@ BISON=bison
 FLEX=flex
 DEPEND=deps
 TARGET=rcdgen
-CXXFILES=ast.cpp check_data.cpp image.cpp fileio.cpp main.cpp \
+CXXFILES=ast.cpp check_data.cpp getoptdata.cpp image.cpp fileio.cpp main.cpp \
 	nodes.cpp parser.cpp scanner.cpp scanner_funcs.cpp
 OBJFILES=$(CXXFILES:.cpp=.o)
 

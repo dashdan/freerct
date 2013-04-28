@@ -509,7 +509,7 @@ int GetLanguageIndex(const char *lname, const Position &pos)
 	for (int i = 0; i < LNG_COUNT; i++) {
 		if (strcmp(_languages[i], lname) == 0) return i;
 	}
-	fprintf(stderr, "Error at %s: Language \"%s\" is not known", pos.ToString(), lname);
+	fprintf(stderr, "Error at %s: Language \"%s\" is not known\n", pos.ToString(), lname);
 	exit(1);
 }
 
