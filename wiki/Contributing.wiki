@@ -1,0 +1,38 @@
+#summary Contributing to the program.
+
+= Introduction =
+
+The program is not finished yet, so we like your help. Current aim is to make the program "playable". To make this happen faster, we need developers.
+
+= Code development =
+
+Anything that does not work or exist needs fixing. You need to know C++, and make patches using the code style of the project, and provide Doxygen comments with it.
+
+The code should build out of the box at a Linux system. For Windows, the build system first needs to be extended so we can build it at both platforms.
+
+If you need graphics that do not exist yet, just make some stub graphics. It does not matter how ugly they are.
+
+Submissions take the form of patches in unified diff format.
+
+
+= Graphics development =
+
+We need LOTS of graphics. Most of the graphics are created using the [http://www.blender.org Blender program]. There are textures and templates in our repository that you should use, so everything gets a uniform look and a standardized format so it can be automagically processed without much effort.
+
+Note that the GPL v2 license of the project requires you to make all your source files publicly available, so others can build on your work. Some source files may not allow such publication, please check the license conditions beforehand.
+
+== RCD files ==
+For future contributions with graphics and item properties, an alternative route exists (in theory so far, nobody has tried it yet). On startup, the program reads RCD files to load its graphics and item properties. The point of this is that everybody can create such a file, and thus make his own extensions.
+
+Currently the *rcdgen* converter program exists (as in, you can download its source, and build it). There is also documentation what you can express in it, and the source files of the used graphics from the project data are available.
+
+
+= Way of working =
+
+  * You may (but don't have to) announce you are going to make something.
+  * The project uses the GPL v2 license. Anything you submit gets that license. If you don't like that, please don't submit anything.
+  * A [https://groups.google.com/forum/?fromgroups#!forum/freerctgame discussion group] exists, where you can discuss things.
+  * An issue in the issue tracker is the center of (mostly technical) communication about the subject.
+    * When you have something concrete, find an existing issue or create a new one, and put the information and/or data in it.
+    * We will review it, and give feedback. It may be a while before that happens though, we are all quite busy.
+    * When it is of good enough quality, it is accepted and added to the project. Again, this may take a while.
