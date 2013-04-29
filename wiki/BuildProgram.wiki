@@ -14,34 +14,31 @@ $ svn checkout http://freerct.googlecode.com/svn/trunk/   freerct-read-only
 </pre>
 (see also the 'source' tab of the project)
 
-== Building RCD files ==
+== Building the program ==
 
-The RCD files contain the data/graphics of the program.
+Almost everything is written in C++, which means you need *g++* to compile it.
+In addition, you need the development packages of *SDL* and *SDL-ttf* (true-type font). you also need *libpng* for making the RCD data files (that contain the graphics and other data read by the program). Last but not least, you need the standard development stuff, like *make*.
+Most Linuces have these packages in their repository.
 
-To build them, you need Python 2.7 and the Python-imaging library (PIL). Many linuces have them in their package manager.
+All the paths are all still hard-coded in the Makefile. (No pretty ./configure yet).
+
 
 Building is as simple as
 
 <pre>
 $ cd freerct-read-only # Go into the downloaded source directory.
-$ cd rcd               # Go into the 'rcd' directory.
 $ make                 # Let make do the heavy work.
-$ cd ..                # Go back to the root
 </pre>
 
-== Building the program ==
+  * The _src_ directory contains the source code of the FreeRCT program itself.
+  * The _rcdgen_ directory contains the source code of the _rcdgen_ program, that builds RCD files from source (which are read by _freerct_).
+  * The _rcd_ directory contains the source files of the RCD data files, except the graphics.
+  * The _sprites_src_ directory contains all the graphics of the game.
 
-The program is written in C++, which means you need g++ to compile it.
-In addition, you need the development packages of SDL and SDL-ttf (true-type font). It uses Python again to generate a table/strings.h file in the process.
-
-The paths where it looks for SDL are hard-coded in the Makefile. (No pretty ./configure yet).
-
-<pre>
-$ cd src  # Go into the source code directory.
-$ make    # Build it.
-</pre>
-
+The _make_ command above will also generate the _rcdgen_ program, and build the RCD files.
 This should create a 'freerct' program in the directory.
+
+At the end, _make_ checks for the presence of the _freerct.cfg_ file. The first time, that will fail. See below how to fix that.
 
 == Config file ==
 
@@ -62,6 +59,7 @@ The actual file is not that critical, as long as it contains the ASCII character
 Now run the program
 
 <pre>
+$ cd src
 $ ./freerct
 </pre>
 
