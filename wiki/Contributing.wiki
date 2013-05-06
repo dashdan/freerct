@@ -43,7 +43,7 @@ In short, _anything that does not exist yet_. Since that is a bit vague, below i
   * User finding his way
     (UI to display the park in small scale, windows listing rides, statistics, problem areas)
   * Popularity
-    (needs a measure of how good the park is, feedback coupling to number of guests arriving (but up to some point so it doesn't spiral out of control, advertising)
+    (needs a measure of how good the park is, feedback coupling to number of guests arriving (but up to some point so it doesn't spiral out of control), advertising)
   * Load and save of games
   * Scenarios
 
