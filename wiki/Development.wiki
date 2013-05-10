@@ -15,6 +15,7 @@ The BuildProgram page explains how to build the program and data files yourself 
 
 == Other pages ==
 
-  * [Contributing] How to contribute to the project
+  * [Contributing] How to contribute to the project.
+  * [32bppImages] Details of the 32bpp images and how to draw them.
   * CommitStyle The format used for the commit messages.
   * ProgramContentAndBehaviour Pages about what the program contains, and how they interact with each other (once it is implemented).
