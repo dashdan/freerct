@@ -37,7 +37,7 @@ In short, _anything that does not exist yet_. Since that is a bit vague, below i
   * *Guests finding their way through the park* (needs path finding, guests understanding what's available and what they want, some sort of advantage for owning a park map)
   * *User finding his way* (UI to display the park in small scale, windows listing rides, statistics, problem areas)
   * *Popularity* (needs a measure of how good the park is, feedback coupling to number of guests arriving (but up to some point so it doesn't spiral out of control), advertising)
-  * *Load and save of games*
+  * *Load and save of games* (discussion: https://groups.google.com/forum/#!topic/freerctgame/h1iIJ-DLJWI )
   * *Scenarios*
 
 All these topics are quite broad. The trick to make actual progress is not to try to do it all in one step. Instead, start with the smallest possible thing you can imagine, and realize it. It won't implement the entire topic, but you're one step closer. Repeat until you run out of things to implement.
