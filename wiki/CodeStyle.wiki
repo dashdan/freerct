@@ -218,3 +218,7 @@ Other expression rules
   * Use spaces around operators like `a + b` or `a != 4 && b * 2 < 15 * f`.
 
 Finally, as  a general rule, don't be over-generic in the implementation. Only add functionality in the functions and methods that you actually need now. If you need more tomorrow, add it tomorrow. Plans for the future sometimes don't happen, and then there is all this future functionality that nobody needs, which is only in the way.
+
+== Acknowledgment ==
+
+Many thanks to the [http://www.openttd.org/ OpenTTD] project for [http://wiki.openttd.org/Coding_style defining the code style].
