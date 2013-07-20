@@ -6,7 +6,7 @@ The program is not finished yet, so we like your help. Current aim is to make th
 
 = Code development =
 
-Anything that does not work or exist needs fixing. You need to know C++, and make patches using the code style of the project, and provide Doxygen comments with it.
+Anything that does not work or exist needs fixing. You need to know C++, and make patches using the [CodeStyle code style] of the project, and provide Doxygen comments with it.
 
 The code should build out of the box at a Linux system. For Windows, the build system first needs to be extended so we can build it at both platforms.
 
