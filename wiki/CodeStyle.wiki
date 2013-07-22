@@ -170,7 +170,7 @@ Method and function bodies are statements mixed with (variable) declarations. To
   * Pointer and reference declarations are attached to the name rather than the type.
   * Declarations are done at or near their first use. If possible, declare iterators inside the `for` statement.
   * Variables that contain commonly used objects often have the same name, try to use the same convention.
-  * Data members accesses are always prefixed with `this->` to make them stand out with local variables.
+  * Accesses to members of the class are always prefixed with `this->` to make them stand out with local variables.
 
 Simple statements like assignment or function calls that are very long can be split over multiple lines. In that case, add *2* additional TABs before the second and further lines to show the line is a continuation. For example
 {{{
