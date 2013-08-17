@@ -21,7 +21,7 @@ In addition, you need the development packages of *SDL* and *SDL-ttf* (true-type
 Most Linuces have these packages in their repository.
 
 All the paths are all still hard-coded in the Makefile. (No pretty ./configure yet).
-
+You may need to tweak the INCLUDES path (add `-I/extra/include/directory` options for finding `.h` files), and/or the LIBS path (add `-L/extra/lib/directory` at the beginning for finding the `lib*.so` or the `lib*.a` libraries).
 
 Building is as simple as
 
