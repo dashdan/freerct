@@ -24,7 +24,7 @@ In addition, you need
 
   * The *lex* (or *flex*) scanner generator, and the *yacc* (or *bison*) parser generator, for generating the RCD input file scanner and parser.
   * *libpng* for making the RCD data files (that contain the graphics and other data read by the program),
-  * *SDL* and *SDL-ttf* (true-type font) for displaying graphics of the program, and
+  * *SDL* and *SDL-ttf* (true-type font) for displaying graphics of the program (both should be SDL version 1), and
   * last but not least, you need the standard development stuff, like *make*.
 
 All the paths are all still hard-coded in the Makefile(s). (No pretty ./configure yet).
