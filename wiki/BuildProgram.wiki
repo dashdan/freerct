@@ -4,6 +4,9 @@
 
 Sorry, only instructions for Linux. I have nothing against Windows, but I don't have such a system, nor did I ever used it for any serious development, so I cannot tell you how to do things there.
 
+== Package building ==
+  * For building native _Debian/Ubuntu/Linux Mint_ packages Adrián Arroyo Calle has setup a PPA at https://launchpad.net/~adrian-arroyocalle/+archive/freerct (date: 20130814)
+
 == Check out ==
 
 The source code is in Subversion, so you need a svn client to get it.
@@ -17,10 +20,14 @@ $ svn checkout http://freerct.googlecode.com/svn/trunk/   freerct-read-only
 == Building the program ==
 
 Almost everything is written in C++, which means you need *g++* to compile it.
-In addition, you need the development packages of *SDL* and *SDL-ttf* (true-type font). you also need *libpng* for making the RCD data files (that contain the graphics and other data read by the program). Last but not least, you need the standard development stuff, like *make*.
-Most Linuces have these packages in their repository.
+In addition, you need
 
-All the paths are all still hard-coded in the Makefile. (No pretty ./configure yet).
+  * The *lex* (or *flex*) scanner generator, and the *yacc* (or *bison*) parser generator, for generating the RCD input file scanner and parser.
+  * *libpng* for making the RCD data files (that contain the graphics and other data read by the program),
+  * *SDL* and *SDL-ttf* (true-type font) for displaying graphics of the program, and
+  * last but not least, you need the standard development stuff, like *make*.
+
+All the paths are all still hard-coded in the Makefile(s). (No pretty ./configure yet).
 You may need to tweak the INCLUDES path (add `-I/extra/include/directory` options for finding `.h` files), and/or the LIBS path (add `-L/extra/lib/directory` at the beginning for finding the `lib*.so` or the `lib*.a` libraries).
 
 Building is as simple as
