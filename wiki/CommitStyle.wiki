@@ -15,6 +15,7 @@ with
 
 List of types:
 
+  * _"Wiki"_ when you are changing the Wiki.
   * _"Add"_ when you added things
   * _"Codechange"_ when you did a change to the code only, which doesn't effect gameplay in any way (so no bugfix!)
   * _"Change"_ when you made a change (use it as little as possible, unclear entry)
