@@ -40,9 +40,9 @@ $ make                 # Let make do the heavy work.
 </pre>
 
   * The _src_ directory contains the source code of the FreeRCT program itself.
-  * The _rcdgen_ directory contains the source code of the _rcdgen_ program, that builds RCD files from source (which are read by _freerct_).
-  * The _rcd_ directory contains the source files of the RCD data files, except the graphics.
-  * The _sprites_src_ directory contains all the graphics of the game.
+  * The _src/rcdgen_ directory contains the source code of the _rcdgen_ program, that builds RCD files from source (which are read by _freerct_).
+  * The _graphics/rcd_ directory contains the source files of the RCD data files, except the graphics.
+  * The _graphics/sprites_ directory contains all the graphics of the game.
 
 The _make_ command above will also generate the _rcdgen_ program, and build the RCD files.
 This should create a 'freerct' program in the directory.
