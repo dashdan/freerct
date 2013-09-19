@@ -27,13 +27,15 @@ In addition, you need
   * *SDL* and *SDL-ttf* (true-type font) for displaying graphics of the program (both should be SDL version 1), and
   * last but not least, you need the standard development stuff, like *make*.
 
-All the paths are all still hard-coded in the Makefile(s). (No pretty ./configure yet).
+The existence of these programs is checked by a pretty `configure` script.
+As of Sept 2013, all the paths are all still hardcoded into the Makefiles, however, work is in progress to fix this.
 You may need to tweak the INCLUDES path (add `-I/extra/include/directory` options for finding `.h` files), and/or the LIBS path (add `-L/extra/lib/directory` at the beginning for finding the `lib*.so` or the `lib*.a` libraries).
 
 Building is as simple as
 
 <pre>
 $ cd freerct-read-only # Go into the downloaded source directory.
+$ ./configure          # Checks libraries are where they're supposed to be and replaces some strings
 $ make                 # Let make do the heavy work.
 </pre>
 
