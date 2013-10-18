@@ -38,14 +38,12 @@ $ cmake .              # Checks libraries are where they're supposed to be and r
 $ make                 # Let make do the heavy work.
 </pre>
 
-  * The _src_ directory contains the source code of the FreeRCT program itself.
-  * The _src/rcdgen_ directory contains the source code of the _rcdgen_ program, that builds RCD files from source (which are read by _freerct_).
-  * The _graphics/rcd_ directory contains the source files of the RCD data files, except the graphics.
-  * The _graphics/sprites_ directory contains all the graphics of the game.
+  * _src_ directory contains the source code of the FreeRCT program itself.
+  * _src/rcdgen_ directory contains the source code of the _rcdgen_ program, that builds RCD files from source (which are read by _freerct_).
+  * _graphics/rcd_ directory contains the source files of the RCD data files, except the graphics.
+  * _graphics/sprites_ directory contains all the graphics of the game.
 
 The _cmake/make_ commands above will generate the _rcdgen_ program, the rcd files and build the 'freerct' program in the src directory.
-
-At the end, _make_ checks for the presence of the _freerct.cfg_ file. The first time, that will fail. See below how to fix that.
 
 == Config file ==
 
