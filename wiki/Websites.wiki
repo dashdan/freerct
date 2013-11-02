@@ -1,15 +1,16 @@
-#summary Links to other websites with reference material.
+#summary Links to other sites.
+
+== Recursive links ==
+Links related to the project itself.
+
+  * IRC: #freerct on oftc.net ([http://webchat.oftc.net/?channels=#freerct Webchat]
+  * [http://freerct.blogspot.com/ Blog]
+  * [http://twitter.com/#!/FreeRCT Twitter]
+  * [http://www.facebook.com/freerct Facebook]
+  * [http://www.freerct.org/ FreeRCT portal]
 
 = Links =
 Below a list of websites that seem to contain useful information about related games.
 
   * [http://www.jumpjet.info/Classic-Games/Windows/RCT/index.html The Definitive RCT Reference Guide]
   * [http://www.strategyplanet.com/rctuk/tid/ RollerCoaster Tycoon Technical Information Depot]
-
-== Recursive links ==
-Links related to the project itself.
-
-  * IRC: #freerct on oftc.net
-  * [http://freerct.blogspot.com/ Blog]
-  * [http://twitter.com/#!/FreeRCT Twitter]
-  * [http://www.facebook.com/freerct Facebook]
