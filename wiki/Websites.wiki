@@ -3,7 +3,7 @@
 == Recursive links ==
 Links related to the project itself.
 
-  * IRC: #freerct on oftc.net ([http://webchat.oftc.net/?channels=#freerct Webchat]
+  * IRC: #freerct on oftc.net ([http://webchat.oftc.net/?channels=#freerct Webchat])
   * [http://freerct.blogspot.com/ Blog]
   * [http://twitter.com/#!/FreeRCT Twitter]
   * [http://www.facebook.com/freerct Facebook]
