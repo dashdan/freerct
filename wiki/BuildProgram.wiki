@@ -23,7 +23,7 @@ Almost everything is written in C++, which means you need *g++* or *clang++* to 
 In addition, you need:
 
   * *libpng* - Making the RCD data files that contain the graphics and other data read by the program.
-  * *SDL* & *SDL-ttf* - Displaying graphics of the program (SDL2 is not yet used).
+  * *SDL2* & *SDL2_ttf* - Displaying graphics of the program. Note that SDL2 versions of the libraries are required.
   * *CMake>=2.8* & *make* - Building the program.
   * `[optional]` *lex/flex* - Scanner generator for generating RCD input files.
   * `[optional]` *yacc/bison* - Parser generator for generating RCD input files.
