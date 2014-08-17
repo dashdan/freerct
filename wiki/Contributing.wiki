@@ -33,7 +33,7 @@ In short, _anything that does not exist yet_. Since that is a bit vague, below i
   * *Security* (needs benches, and/or lights, security guards walking around, guests that spot guards)
   * *Handy men* (needs growing grass, rides that break down, a dispatch system calling handy men for repair and maintenance, handy men walking around, and mowing the grass)
   * *Litter* (needs litter at paths, litter bins, handy men collecting litter)
-  * *Park border* (needs park gate, fences, option to buy new land)
+  * *Park border* (needs park gate, option to buy new land)
   * *Guests finding their way through the park* (needs path finding, guests understanding what's available and what they want, some sort of advantage for owning a park map)
   * *User finding his way* (UI to display the park in small scale, windows listing rides, statistics, problem areas)
   * *Popularity* (needs a measure of how good the park is, feedback coupling to number of guests arriving (but up to some point so it doesn't spiral out of control), advertising)
