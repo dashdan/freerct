@@ -61,7 +61,10 @@ ZLIB_LIBRARY = F:\libraries\OpenTTD_essentials\win32\library\zlibstat.lib
 You have now generated the Visual Studio project files. Start Visual Studio and open solution F:\trunk\FreeRCT.sln.
 
  # In Solution Explorer, right click on rcdgen and select Properties. Go to Configuration Properties => Linker => Advanced => Image Has Safe Exception Handlers. Change this property to "No (/SAFESEH:NO)". Click OK.
- # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties. Go to Common Properties => Startup Project. In the Single startup project dropdown, select freerct.
+ # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties. 
+   # Go to Common Properties => Startup Project. In the Single startup project dropdown, select freerct.
+   # Go to Common Proporties => Linker => System. Change SubSystem to "Windows (/SUBSYSTEM:WINDOWS)"
+   # Click OK.
  # Press F7 on your keyboard to compile
  # When compilation is done, you can run using F5. 
 
