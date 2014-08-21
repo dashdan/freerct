@@ -22,7 +22,19 @@ This have been tested to build win32/x86 version. It may also work for x64, but 
  # Download SDL2 development packet and unpack to F:\libraries\SDL2 https://www.libsdl.org/download-2.0.php
  # Download SDL2_ttf development packet and unpack to F:\libraries\SDL2_ttf https://www.libsdl.org/projects/SDL_ttf/
  # Download OpenTTD useful 5.1 ("Headers/libraries to compile with MSVC for windows") and unpack to F:\libraries\OpenTTD_essentials\ http://www.openttd.org/en/download-openttd-useful
- # Download SDL2 and SDL2_ttf runtime binaries from the links above and put the DLLs in F:\trunk\bin (you may need to create the bin folder)
+ # Download SDL2 and SDL2_ttf runtime binaries from the links above and put the DLLs in F:\trunk\bin (you may need to create the bin folder). If you plan to distribute the bin directory, mind to include any license/copyright files from SDL and SDL_ttf that you are required to include.
+
+== Prepare: Font config ==
+Get a font. Here we use Bitstream Vera that is an open font.
+ # Go to http://www.dafont.com/bitstream-vera-sans.font and click on Download-button. Extract vera.ttf and put in F:\trunk\bin
+ # Create F:\trunk\bin\freerct.cfg in your favoruite text editor:
+{{{
+[font]
+medium-size = 12
+medium-font = ./vera.ttf
+}}}
+
+* Note: * if you plan to distribute your bin directory, mind the license of the fort. You are likely required to include its copyright/license files.
 
 == CMake ==
  # Start the CMake GUI application
@@ -51,6 +63,6 @@ You have now generated the Visual Studio project files. Start Visual Studio and 
  # In Solution Explorer, right click on rcdgen and select Properties. Go to Configuration Properties => Linker => Advanced => Image Has Safe Exception Handlers. Change this property to "No (/SAFESEH:NO)". Click OK.
  # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties. Go to Common Properties => Startup Project. In the Single startup project dropdown, select freerct.
  # Press F7 on your keyboard to compile
- # When compilation is done, you can run using F5.
+ # When compilation is done, you can run using F5. 
 
 Note: At the moment you also need to make source code changes in order to make FreeRCT compile on Windows. These will eventually end up in SVN.
