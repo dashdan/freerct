@@ -1,0 +1,56 @@
+#How to Build FreeRCT using Visual Studio on Windows
+
+= Introduction =
+
+*WARNING: These instructions are not enough to compile. You need some source code changes too. Which changes that are needed are not yet documented here.*
+
+This is a first step in documenting what steps are needed to compile FreeRCT on Windows using Visual Studio. We hope to reduce the length of this list later on.
+
+= Details =
+
+We here assume F:\trunk is the path to a checkout/clone of trunk, and that you have a folder F:\libraries. You can replace these with actual paths on your system.
+
+This have been tested to build win32/x86 version. It may also work for x64, but this have not been tested.
+
+== Prepare: Install software ==
+ * Install CMake
+ * Install Visual Studio 2013 (It may work with earlier versions, but that is untested)
+ * Install an SVN client. Eg. TortoiseSVN
+
+== Prepare: Download files ==
+ # Clone/check out FreeRCT source code from SVN to F:\trunk. There should not be a trunk folder inside F:\trunk. Instead you should have F:\trunk\src etc.
+ # Download SDL2 development packet and unpack to F:\libraries\SDL2 https://www.libsdl.org/download-2.0.php
+ # Download SDL2_ttf development packet and unpack to F:\libraries\SDL2_ttf https://www.libsdl.org/projects/SDL_ttf/
+ # Download OpenTTD useful 5.1 ("Headers/libraries to compile with MSVC for windows") and unpack to F:\libraries\OpenTTD_essentials\ http://www.openttd.org/en/download-openttd-useful
+ # Download SDL2 and SDL2_ttf runtime binaries from the links above and put the DLLs in F:\trunk\bin (you may need to create the bin folder)
+
+== CMake ==
+ # Start the CMake GUI application
+ # Click on "Browse Source" and select F:\trunk
+ # Click on "Browse Build" and select F:\trunk
+ # Check the checkmark "Advanced"
+ # Click on "Configure". You will be presented with an error in red text at the bottom that say what you need to configure. Here follows a list of what paths you will set when asked for:
+{{{
+PNG_LIBRARY_DEBUG = F:\libraries\OpenTTD_essentials\win32\library\libpng.lib
+PNG_LIBRARY_RELEASE = F:\libraries\OpenTTD_essentials\win32\library\libpng.lib
+PNG_PNG_INCLUDE_DIR = F:\libraries\OpenTTD_essentials\shared\include\
+SDL2MAIN_LIBRARY = F:\libraries\SDL2\lib\x86\SDL2main.lib
+SDL2TTFMAIN_LIBRARY = 
+SDL2TTF_INCLUDE_DIR = F:\libraries\SDL2_ttf\include\
+SDL2TTF_LIBRARY = F:\libraries\SDL2_ttf\lib\x86\SDL2_ttf.lib
+SDL2_INCLUDE_DIR = F:\libraries\SDL2\include\
+SDL2_LIBRARY = F:\libraries\SDL2\lib\x86\SDL2.lib
+ZLIB_INCLUDE_DIR = F:\libraries\OpenTTD_essentials\shared\include\
+ZLIB_LIBRARY = F:\libraries\OpenTTD_essentials\win32\library\zlibstat.lib
+}}}
+ # When there are no more errors, click on "Generate"
+
+== Visual Studio ==
+You have now generated the Visual Studio project files. Start Visual Studio and open solution F:\trunk\FreeRCT.sln.
+
+ # In Solution Explorer, right click on rcdgen and select Properties. Go to Configuration Properties => Linker => Advanced => Image Has Safe Exception Handlers. Change this property to "No (/SAFESEH:NO)". Click OK.
+ # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties. Go to Common Properties => Startup Project. In the Single startup project dropdown, select freerct.
+ # Press F7 on your keyboard to compile
+ # When compilation is done, you can run using F5.
+
+Note: At the moment you also need to make source code changes in order to make FreeRCT compile on Windows. These will eventually end up in SVN.
