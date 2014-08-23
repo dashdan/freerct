@@ -2,8 +2,6 @@
 
 = Introduction =
 
-*WARNING: These instructions are not enough to compile. You need some source code changes too. Which changes that are needed are not yet documented here.*
-
 This is a first step in documenting what steps are needed to compile FreeRCT on Windows using Visual Studio. We hope to reduce the length of this list later on.
 
 = Details =
@@ -60,13 +58,11 @@ ZLIB_LIBRARY = F:\libraries\OpenTTD_essentials\win32\library\zlibstat.lib
 == Visual Studio ==
 You have now generated the Visual Studio project files. Start Visual Studio and open solution F:\trunk\FreeRCT.sln.
 
- # In Solution Explorer, right click on rcdgen and select Properties. Go to Configuration Properties => Linker => Advanced => Image Has Safe Exception Handlers. Change this property to "No (/SAFESEH:NO)". Click OK.
- # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties. 
+ # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties.
    # Go to Common Properties => Startup Project. In the Single startup project dropdown, select freerct.
-   # Go to Common Proporties => Linker => System. Change SubSystem to "Windows (/SUBSYSTEM:WINDOWS)"
    # Go to Common Properties => Debugging. Change "Working Directory" to "$(ProjectDir)..\bin"
    # Click OK.
  # Press F7 on your keyboard to compile
  # When compilation is done, you can run using F5. 
 
-Note: At the moment you also need to make source code changes in order to make FreeRCT compile on Windows. These will eventually end up in SVN.
+The changes made for startup project and working directory are stored separate from the project files and will thus be kept even if the project files are re-generated later.
