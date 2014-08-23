@@ -1,4 +1,4 @@
-#How to Build FreeRCT using Visual Studio on Windows
+#summary How to Build FreeRCT using Visual Studio on Windows
 
 = Introduction =
 
