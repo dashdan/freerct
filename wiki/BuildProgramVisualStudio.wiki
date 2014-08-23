@@ -29,7 +29,7 @@ Get a font. Here we use Bitstream Vera that is an open font.
 {{{
 [font]
 medium-size = 12
-medium-font = ./vera.ttf
+medium-path = ./vera.ttf
 }}}
 
 * Note: * if you plan to distribute your bin directory, mind the license of the fort. You are likely required to include its copyright/license files.
