@@ -2,7 +2,7 @@
 
 = FreeRCT build instructions =
 
-Currently only Linux is officially supported, but Windows support should be possible with a few minor modifications.
+Currently only Linux is officially supported, but Windows support should be possible with a few minor modifications. See [BuildProgramVisualStudio] for instructions on building FreeRCT on Windows using Visual Studio.
 
 == Package building ==
   * For building native _Debian/Ubuntu/Linux Mint_ packages, the repository has a 'debian' subdirectory with a build description. There is also an _*unofficial*_ PPA at https://launchpad.net/~adrian-arroyocalle/+archive/freerct, set up by Adrián Arroyo Calle.
