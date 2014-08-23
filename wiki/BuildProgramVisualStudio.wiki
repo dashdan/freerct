@@ -60,7 +60,7 @@ You have now generated the Visual Studio project files. Start Visual Studio and 
 
  # In Solution Explorer, right click on "Solution 'FreeRCT' (5 projects)" and select Properties.
    # Go to Common Properties => Startup Project. In the Single startup project dropdown, select freerct.
-   # Go to Common Properties => Debugging. Change "Working Directory" to "$(ProjectDir)..\bin"
+   # Go to Common Properties => Debugging. Change "Working Directory" to {{{"$(ProjectDir)..\bin"}}}
    # Click OK.
  # Press F7 on your keyboard to compile
  # When compilation is done, you can run using F5. 
